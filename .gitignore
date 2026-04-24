@@ -1,3 +1,4 @@
+
 # ---------- Secrets & local config ----------
 .env
 .env.*
@@ -178,3 +179,4 @@ $RECYCLE.BIN/
 # ---------- Claude Code / agent tooling ----------
 .claude/settings.local.json
 .claude/cache/
+
