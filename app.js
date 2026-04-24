@@ -1,0 +1,1247 @@
+/**
+ * app.js — HistoryLive Core Application
+ * Manages state, step navigation, seed image simulation, and video render simulation.
+ */
+
+(function () {
+  "use strict";
+
+  /* ─────────────────────────────────────────
+     STATE
+  ───────────────────────────────────────── */
+  const state = {
+    currentStep:    1,
+    selectedSpeech: null,
+    researchData:   {},
+    controls: {
+      aspectRatio:  "16:9",
+      colorGrade:   "cinematic",
+      perspective:  "audience-pov"
+    },
+    seedRevisions:  0,
+    scenes:         []
+  };
+
+  /* ─────────────────────────────────────────
+     STEP NAVIGATION
+  ───────────────────────────────────────── */
+  function goToStep(n) {
+    const panels  = document.querySelectorAll(".step-panel");
+    const navItems = document.querySelectorAll(".step-item");
+
+    panels.forEach(p => p.classList.remove("active"));
+    navItems.forEach((item, idx) => {
+      item.classList.remove("active");
+      if (idx + 1 < n)  item.classList.add("done");
+      else               item.classList.remove("done");
+    });
+
+    const targetPanel = document.getElementById(`step${n}`);
+    const targetNav   = document.querySelector(`.step-item[data-step="${n}"]`);
+    if (targetPanel) targetPanel.classList.add("active");
+    if (targetNav)   targetNav.classList.add("active");
+
+    state.currentStep = n;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ─────────────────────────────────────────
+     TOAST
+  ───────────────────────────────────────── */
+  let toastTimer;
+  function showToast(msg, duration = 3200) {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.classList.add("show");
+    toastTimer = setTimeout(() => toast.classList.remove("show"), duration);
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 1 — SPEECH SELECTION
+  ───────────────────────────────────────── */
+  function initStep1() {
+    renderSpeechCards(window.SPEECHES_DB);
+
+    const searchInput = document.getElementById("speechSearch");
+    const filterBtns  = document.querySelectorAll(".filter-btn");
+
+    searchInput.addEventListener("input", filterCards);
+    filterBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        filterCards();
+      });
+    });
+
+    document.getElementById("step1Next").addEventListener("click", () => {
+      if (!state.selectedSpeech) return;
+      goToStep(2);
+      startResearchAgent();
+    });
+  }
+
+  function renderSpeechCards(data) {
+    const grid = document.getElementById("speechGrid");
+    grid.innerHTML = "";
+    if (!data.length) {
+      grid.innerHTML = `<p class="text-muted" style="grid-column:1/-1;padding:2rem 0;">No speeches match your search.</p>`;
+      return;
+    }
+    data.forEach(s => {
+      const card = document.createElement("div");
+      card.className = "speech-card";
+      card.dataset.era = s.era;
+      card.setAttribute("role", "listitem");
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("aria-label", `${s.figure} — ${s.speech}`);
+      card.dataset.id = s.id;
+
+      card.innerHTML = `
+        <div class="card-select-badge" aria-hidden="true">✓</div>
+        <div class="card-era">${eraLabel(s.era)} · ${displayYear(s.year)}</div>
+        <div class="card-figure">${s.figure}</div>
+        <div class="card-speech">${s.speech}</div>
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:var(--space-3);line-height:1.45">${s.description}</p>
+        <div class="card-meta">
+          <span>📍 ${s.research.locationCity}, ${s.research.locationCountry}</span>
+          <span>🌐 ${s.research.speechLanguage}</span>
+        </div>
+      `;
+
+      card.addEventListener("click", () => selectSpeech(s.id));
+      card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectSpeech(s.id); } });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function selectSpeech(id) {
+    document.querySelectorAll(".speech-card").forEach(c => c.classList.remove("selected"));
+    const card = document.querySelector(`.speech-card[data-id="${id}"]`);
+    if (card) {
+      card.classList.add("selected");
+      card.setAttribute("aria-pressed", "true");
+    }
+    state.selectedSpeech = window.SPEECHES_DB.find(s => s.id === id) || null;
+
+    const nextBtn = document.getElementById("step1Next");
+    nextBtn.disabled = false;
+    nextBtn.removeAttribute("aria-disabled");
+    showToast(`"${state.selectedSpeech.speech}" selected — ${state.selectedSpeech.figure}`);
+  }
+
+  function filterCards() {
+    const query  = document.getElementById("speechSearch").value.toLowerCase().trim();
+    const active = document.querySelector(".filter-btn.active")?.dataset.filter || "all";
+
+    const filtered = window.SPEECHES_DB.filter(s => {
+      const matchEra = active === "all" || s.era === active;
+      const matchQ   = !query ||
+        s.figure.toLowerCase().includes(query) ||
+        s.speech.toLowerCase().includes(query) ||
+        String(s.year).includes(query) ||
+        s.research.locationCity.toLowerCase().includes(query) ||
+        s.description.toLowerCase().includes(query);
+      return matchEra && matchQ;
+    });
+
+    renderSpeechCards(filtered);
+
+    // Re-select if previously selected card is still visible
+    if (state.selectedSpeech) {
+      const card = document.querySelector(`.speech-card[data-id="${state.selectedSpeech.id}"]`);
+      if (card) card.classList.add("selected");
+    }
+  }
+
+  function eraLabel(era) {
+    return {
+      ancient: "Ancient", medieval: "Medieval",
+      "modern-early": "Early Modern", modern: "Modern",
+      contemporary: "Contemporary"
+    }[era] || era;
+  }
+
+  function displayYear(year) {
+    return year < 0 ? `${Math.abs(year)} BCE` : `${year} CE`;
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 2 — RESEARCH FORM
+  ───────────────────────────────────────── */
+  function startResearchAgent() {
+    if (!state.selectedSpeech) return;
+    const s  = state.selectedSpeech;
+    const el = id => document.getElementById(id);
+
+    // Populate speech context banner
+    if (el("scbEmoji"))  el("scbEmoji").textContent  = s.emoji || "🎭";
+    if (el("scbFigure")) el("scbFigure").textContent = s.figure;
+    if (el("scbSpeech")) el("scbSpeech").textContent = s.speech;
+    if (el("scbYear"))   el("scbYear").textContent   = displayYear(s.year);
+    if (el("scbEra"))    el("scbEra").textContent    = eraLabel(s.era);
+
+    ResearchAgent.fillForm(s.research);
+  }
+
+  function initStep2() {
+    document.getElementById("step2Back").addEventListener("click", () => goToStep(1));
+    document.getElementById("step2Next").addEventListener("click", () => {
+      collectResearchData();
+      goToStep(3);
+      generateSeedImage();
+    });
+
+    // Setting toggle
+    document.getElementById("settingType").addEventListener("change", function () {
+      ResearchAgent.toggleIndoorFields(this.value === "indoor");
+    });
+  }
+
+  function collectResearchData() {
+    const form   = document.getElementById("researchForm");
+    const inputs = form.querySelectorAll("input, select, textarea");
+    const data   = {};
+    inputs.forEach(el => { if (el.name) data[el.name] = el.value; });
+    // Accuracy tier
+    const tierChecked = form.querySelector("input[name='accuracyTier']:checked");
+    data.accuracyTier = tierChecked ? tierChecked.value : "2";
+    state.researchData = data;
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 3 — SEED IMAGE
+  ───────────────────────────────────────── */
+
+  // Curated descriptions for seed image captions per speech id
+  const SEED_CAPTIONS = {
+    "gettysburg-1863":      "Abraham Lincoln at the Soldiers' National Cemetery, Gettysburg, November 1863. Frock coat, temporary platform, overcast afternoon.",
+    "ihaveadream-1963":     "Dr. King at the Lincoln Memorial steps, August 1963. Sunlit crowd of 250,000 stretching toward the Washington Monument.",
+    "hammurabi-code":       "Hammurabi in the temple throne room of Babylon, c. 1754 BCE. Oil-lit stone hall, scribes and priests in attendance.",
+    "sojourner-truth-1851": "Sojourner Truth at the Women's Rights Convention, Akron, 1851. Church interior, natural window light.",
+    "winston-churchill-finest-hour": "Churchill at the dispatch box, House of Commons, June 1940. Wood-panelled chamber, ribbons of cigar smoke.",
+    "pericles-funeral-oration":      "Pericles at the Kerameikos cemetery, Athens, 431 BCE. White marble platform, cypress trees, mourning crowd.",
+    "jfk-moon-speech":      "President Kennedy at the Rice Stadium podium, Houston, September 1962. Presidential seal, sun-bleached field.",
+    "nelson-mandela-release": "Nelson Mandela on the Cape Town City Hall balcony, February 1990. Fist raised, jubilant crowd below in the Grand Parade."
+  };
+
+  // Placeholder images (SVG-based generative previews)
+  function buildSeedSVG(speech, colorGrade) {
+    const colors = {
+      cinematic:   ["#1a0d00", "#3d2200", "#c9973d", "#e8c07a"],
+      documentary: ["#0a0a0a", "#2a2a2a", "#8a8a8a", "#cccccc"],
+      neutral:     ["#0d0f14", "#1a2030", "#4a7ab5", "#8abde0"]
+    }[colorGrade] || ["#1a0d00", "#3d2200", "#c9973d", "#e8c07a"];
+
+    const [bg1, bg2, accent1, accent2] = colors;
+    const emoji = speech?.emoji || "🎬";
+
+    return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="${bg2}"/>
+      <stop offset="100%" stop-color="${bg1}"/>
+    </radialGradient>
+    <radialGradient id="spot" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${accent1}" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="${accent1}" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="30"/></filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="multiply"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <ellipse cx="640" cy="360" rx="500" ry="300" fill="url(#spot)" filter="url(#blur)"/>
+
+  <!-- Silhouette figure -->
+  <g transform="translate(560, 180)">
+    <!-- Head -->
+    <ellipse cx="60" cy="30" rx="28" ry="32" fill="${accent1}" opacity="0.85"/>
+    <!-- Body -->
+    <path d="M20 62 Q60 50 100 62 L110 200 Q60 220 10 200 Z" fill="${accent1}" opacity="0.8"/>
+    <!-- Arms -->
+    <path d="M20 80 Q0 110 10 140" stroke="${accent1}" stroke-width="14" fill="none" opacity="0.7" stroke-linecap="round"/>
+    <path d="M100 80 Q120 110 115 145" stroke="${accent1}" stroke-width="14" fill="none" opacity="0.7" stroke-linecap="round"/>
+    <!-- Legs -->
+    <rect x="30" y="200" width="22" height="90" rx="8" fill="${accent1}" opacity="0.75"/>
+    <rect x="68" y="200" width="22" height="90" rx="8" fill="${accent1}" opacity="0.75"/>
+    <!-- Podium -->
+    <rect x="-40" y="290" width="200" height="16" rx="4" fill="${accent2}" opacity="0.4"/>
+    <rect x="0" y="306" width="120" height="80" rx="4" fill="${accent2}" opacity="0.25"/>
+  </g>
+
+  <!-- Crowd silhouettes -->
+  ${Array.from({length:18}, (_,i) => {
+    const x = 60 + i * 64;
+    const y = 560 + (i % 3) * 12;
+    const h = 60 + (i % 4) * 8;
+    return `<ellipse cx="${x}" cy="${y - h/2}" rx="16" ry="20" fill="${accent1}" opacity="${0.2 + (i%3)*0.07}"/>
+            <rect x="${x-8}" y="${y - h/2 + 18}" width="16" height="${h}" rx="5" fill="${accent1}" opacity="${0.15 + (i%4)*0.05}"/>`;
+  }).join("")}
+
+  <!-- Atmosphere lines -->
+  <line x1="0" y1="0" x2="640" y2="720" stroke="${accent1}" stroke-width="0.5" opacity="0.06"/>
+  <line x1="1280" y1="0" x2="640" y2="720" stroke="${accent1}" stroke-width="0.5" opacity="0.06"/>
+
+  <!-- AI watermark label -->
+  <rect x="20" y="670" width="280" height="34" rx="5" fill="rgba(0,0,0,0.5)"/>
+  <text x="34" y="691" font-family="monospace" font-size="13" fill="${accent2}" opacity="0.9">✦ AI SEED IMAGE — AWAITING APPROVAL</text>
+
+  <!-- Film grain overlay -->
+  <rect width="1280" height="720" fill="none" filter="url(#grain)" opacity="0.04"/>
+</svg>`)}`;
+  }
+
+  function generateSeedImage() {
+    const loadingEl = document.getElementById("seedLoading");
+    const imgEl     = document.getElementById("seedImage");
+    const captionEl = document.getElementById("seedCaption");
+
+    loadingEl.classList.remove("hidden");
+    imgEl.classList.add("hidden");
+
+    // Simulate generation delay
+    setTimeout(() => {
+      const svgSrc = buildSeedSVG(state.selectedSpeech, state.controls.colorGrade);
+      imgEl.src = svgSrc;
+      imgEl.onload = () => {
+        loadingEl.classList.add("hidden");
+        imgEl.classList.remove("hidden");
+        const cap = SEED_CAPTIONS[state.selectedSpeech?.id] || `${state.selectedSpeech?.figure} — ${state.selectedSpeech?.speech}`;
+        captionEl.textContent = `📷 AI-generated seed image: ${cap}`;
+        showToast("Seed image generated — review and approve or request revisions.");
+      };
+      // Fallback if onload doesn't fire (inline SVG)
+      setTimeout(() => {
+        if (imgEl.classList.contains("hidden")) {
+          loadingEl.classList.add("hidden");
+          imgEl.classList.remove("hidden");
+          captionEl.textContent = SEED_CAPTIONS[state.selectedSpeech?.id] || "";
+        }
+      }, 200);
+    }, 2400);
+  }
+
+  function initStep3() {
+    // Toggle buttons
+    document.querySelectorAll(".toggle-group .toggle-btn").forEach(btn => {
+      btn.addEventListener("click", function () {
+        const group = this.closest(".toggle-group");
+        group.querySelectorAll(".toggle-btn").forEach(b => {
+          b.classList.remove("active");
+          b.setAttribute("aria-checked", "false");
+        });
+        this.classList.add("active");
+        this.setAttribute("aria-checked", "true");
+
+        const val = this.dataset.value;
+        if (["16:9","9:16"].includes(val))             state.controls.aspectRatio = val;
+        if (["cinematic","documentary","neutral"].includes(val)) state.controls.colorGrade  = val;
+        if (["audience-pov","multi-shot"].includes(val)) state.controls.perspective = val;
+      });
+    });
+
+    document.getElementById("requestRevision").addEventListener("click", () => {
+      state.seedRevisions++;
+      const notes = document.getElementById("revisionNotes").value.trim();
+      showToast(`Revision ${state.seedRevisions} requested${notes ? ` — "${notes.substring(0,40)}…"` : ""}. Regenerating…`);
+      document.getElementById("seedLoading").classList.remove("hidden");
+      document.getElementById("seedImage").classList.add("hidden");
+      setTimeout(() => {
+        generateSeedImageLocal();
+        showToast("Revised seed image ready. You can approve or request another revision.");
+      }, 1800);
+    });
+
+    document.getElementById("approveSeed").addEventListener("click", () => {
+      showToast("Seed image approved! Building storyboard…");
+      collectResearchData();
+      const scenes = StoryboardAgent.buildScenes(
+        state.selectedSpeech,
+        state.researchData,
+        state.controls
+      );
+      state.scenes = scenes;
+      StoryboardAgent.renderScenes(scenes);
+      goToStep(4);
+    });
+
+    document.getElementById("step3Back").addEventListener("click", () => goToStep(2));
+  }
+
+  function generateSeedImageLocal() {
+    const imgEl     = document.getElementById("seedImage");
+    const loadingEl = document.getElementById("seedLoading");
+    const captionEl = document.getElementById("seedCaption");
+    const svgSrc = buildSeedSVG(state.selectedSpeech, state.controls.colorGrade);
+    imgEl.src = svgSrc;
+    loadingEl.classList.add("hidden");
+    imgEl.classList.remove("hidden");
+    captionEl.textContent = (SEED_CAPTIONS[state.selectedSpeech?.id] || "") +
+      (state.seedRevisions > 0 ? ` (Revision ${state.seedRevisions})` : "");
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 4 — STORYBOARD
+  ───────────────────────────────────────── */
+  function initStep4() {
+    document.getElementById("step4Back").addEventListener("click", () => goToStep(3));
+    document.getElementById("step4Next").addEventListener("click", () => {
+      goToStep(5);
+      startVideoRender();
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 5 — VIDEO OUTPUT
+  ───────────────────────────────────────── */
+  const RENDER_STEPS = [
+    "Initialising render engine…",
+    "Processing historical audio…",
+    "Compositing period-accurate scene…",
+    "Applying colour grade…",
+    "Rendering crowd simulation…",
+    "Scoring ambient audio…",
+    "Encoding final video…",
+    "Optimising output…",
+    "Finalising…",
+    "Complete ✓"
+  ];
+
+  function startVideoRender() {
+    populateVideoDetails();
+    populateCaptionPanel();
+
+    const bar      = document.getElementById("renderProgress");
+    const label    = document.getElementById("progressLabel");
+    const loading  = document.getElementById("videoLoading");
+
+    let progress = 0;
+    let stepIdx  = 0;
+
+    const interval = setInterval(() => {
+      progress += Math.random() * 12 + 4;
+      if (progress > 100) progress = 100;
+
+      bar.style.width = `${progress}%`;
+      bar.setAttribute("aria-valuenow", Math.round(progress));
+
+      const si = Math.min(Math.floor((progress / 100) * RENDER_STEPS.length), RENDER_STEPS.length - 1);
+      if (si !== stepIdx) {
+        stepIdx = si;
+        label.textContent = RENDER_STEPS[stepIdx];
+      }
+
+      if (progress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          loading.classList.add("hidden");
+          showVideoComplete();
+        }, 600);
+      }
+    }, 320);
+  }
+
+  function showVideoComplete() {
+    const metaEl   = document.getElementById("videoMeta");
+    const loading  = document.getElementById("videoLoading");
+
+    // Replace loading with a styled placeholder
+    const placeholder = document.createElement("div");
+    placeholder.style.cssText = `
+      width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:linear-gradient(160deg,rgba(45,31,94,0.9),rgba(19,16,42,0.95));color:var(--accent);gap:12px;border-radius:20px;
+    `;
+    const sp = state.selectedSpeech;
+    placeholder.innerHTML = `
+      <div style="font-size:4rem">${sp?.emoji || "🎬"}</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#E8E4F8;text-align:center;padding:0 2rem">
+        ${sp?.figure || "Historical Figure"}
+      </div>
+      <div style="font-size:.9rem;color:#9B96C0;font-style:italic;text-align:center;padding:0 2rem">
+        "${sp?.speech || "Historical Speech"}"
+      </div>
+      <div style="font-size:.75rem;color:#9B96C0;margin-top:8px">
+        ${state.controls.colorGrade.toUpperCase()} · ${state.controls.aspectRatio} · ${
+          state.controls.perspective === "audience-pov" ? "Audience POV" : "Multi-Shot Cinematic"
+        }
+      </div>
+      <div style="margin-top:12px;background:rgba(58,191,191,.15);border:1px solid rgba(58,191,191,.3);padding:8px 20px;border-radius:9999px;font-size:.78rem;color:#3ABFBF">
+        ✦ Video Ready — Connect AI Video API to render
+      </div>
+    `;
+    loading.replaceWith(placeholder);
+
+    // Populate speech card below video
+    const titleEl    = document.getElementById("videoSpeechTitle");
+    const subtitleEl = document.getElementById("videoSpeechSubtitle");
+    if (titleEl && sp)    titleEl.textContent    = sp.speech || "Historical Speech";
+    if (subtitleEl && sp) subtitleEl.textContent = `${sp.figure} · ${displayYear(sp.year)}`;
+
+    // Simulate segment playback on seg bar
+    simulateSegBar();
+
+    metaEl.textContent = `${state.controls.aspectRatio} · ${state.controls.colorGrade} grade · ${state.controls.perspective === "audience-pov" ? "Audience POV" : "Multi-Shot"} · Accuracy Tier ${state.researchData.accuracyTier || 2}`;
+    showToast("🎬 Your video is ready!");
+  }
+
+  function simulateSegBar() {
+    const segs = document.querySelectorAll("#videoSegBar .video-seg");
+    const indicator = document.getElementById("videoSegIndicator");
+    if (!segs.length) return;
+    let current = 0;
+    function advanceSeg() {
+      segs.forEach((s, i) => {
+        s.classList.remove("active", "done");
+        if (i < current)  s.classList.add("done");
+        if (i === current) s.classList.add("active");
+      });
+      if (indicator) indicator.textContent = `Segment ${current + 1} of ${segs.length}`;
+      current++;
+      if (current < segs.length) setTimeout(advanceSeg, 2600);
+      else {
+        segs.forEach(s => { s.classList.remove("active"); s.classList.add("done"); });
+        if (indicator) indicator.textContent = `All ${segs.length} segments played`;
+      }
+    }
+    setTimeout(advanceSeg, 300);
+  }
+
+  function populateVideoDetails() {
+    const dl = document.getElementById("videoDetailsList");
+    const r  = state.researchData;
+    const s  = state.selectedSpeech;
+    if (!dl || !s) return;
+
+    dl.innerHTML = [
+      ["Speaker",  r.speakerName  || s.figure],
+      ["Speech",   r.speechTitle  || s.speech],
+      ["Date",     r.speechDate   || String(s.year)],
+      ["Location", [r.locationCity, r.locationState, r.locationCountry].filter(Boolean).join(", ")],
+      ["Language", r.speechLanguage || "—"],
+      ["Accuracy", `Tier ${r.accuracyTier || 2}`],
+      ["Aspect",   state.controls.aspectRatio],
+      ["Look",     state.controls.colorGrade],
+      ["Camera",   state.controls.perspective === "audience-pov" ? "Audience POV" : "Multi-Shot"]
+    ].map(([dt, dd]) => `<dt>${dt}</dt><dd>${dd || "—"}</dd>`).join("");
+  }
+
+  function populateCaptionPanel() {
+    const panel = document.getElementById("captionPanel");
+    const r     = state.researchData;
+    if (!panel) return;
+    const text = r.speechTranscript?.trim();
+    if (text) {
+      panel.innerHTML = text.replace(/\n/g, "<br/><br/>");
+    } else {
+      panel.textContent = "No transcript available for this speech. Historical reconstruction only.";
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 5 — VIDEO OUTPUT
+  ───────────────────────────────────────── */
+  function initStep5() {
+    document.getElementById("step5Back").addEventListener("click", () => goToStep(4));
+    document.getElementById("step5Next").addEventListener("click", () => {
+      goToStep(6);
+      startActivity();
+    });
+
+    document.getElementById("downloadVideo").addEventListener("click", () => {
+      showToast("⬇ In production, this would download your generated video file.");
+    });
+
+    document.getElementById("shareVideo").addEventListener("click", () => {
+      const url = `${window.location.origin}${window.location.pathname}?speech=${state.selectedSpeech?.id || ""}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url)
+          .then(() => showToast("✓ Share link copied to clipboard!"))
+          .catch(() => showToast("↗ Share link: " + url));
+      } else {
+        showToast("↗ Share link ready (copy from address bar).");
+      }
+    });
+
+    document.getElementById("startOver").addEventListener("click", resetToStep1);
+  }
+
+  /* ─────────────────────────────────────────
+     MODAL
+  ───────────────────────────────────────── */
+  function initModal() {
+    const overlay = document.getElementById("modalOverlay");
+    const closeBtn = document.getElementById("modalClose");
+    if (!overlay || !closeBtn) return;
+
+    closeBtn.addEventListener("click", () => {
+      overlay.hidden = true;
+    });
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) overlay.hidden = true;
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && !overlay.hidden) overlay.hidden = true;
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     FOOTER YEAR
+  ───────────────────────────────────────── */
+  const yearEl = document.getElementById("footerYear");
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  /* ─────────────────────────────────────────
+     CANVAS PARTICLES
+  ───────────────────────────────────────── */
+  function initHeroCanvas() {
+    const canvas = document.getElementById("heroCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resize() {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    function spawn() {
+      return {
+        x:  rand(0, canvas.width),
+        y:  rand(canvas.height * 0.1, canvas.height),
+        r:  rand(0.4, 2.0),
+        vx: rand(-0.1, 0.1),
+        vy: rand(-0.5, -0.12),
+        a:  rand(0.18, 0.72),
+        da: rand(0.0007, 0.0028)
+      };
+    }
+
+    for (let i = 0; i < 95; i++) {
+      const p = spawn();
+      p.y = rand(0, canvas.height);
+      particles.push(p);
+    }
+
+    (function tick() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.a -= p.da;
+        if (p.a <= 0 || p.y < -8) {
+          particles[i] = spawn();
+          particles[i].y = canvas.height + 4;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, 6.2832);
+        ctx.fillStyle = `rgba(58,191,191,${p.a})`;
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    })();
+  }
+
+  /* ─────────────────────────────────────────
+     COUNTER ANIMATION
+  ───────────────────────────────────────── */
+  function animateCounters() {
+    document.querySelectorAll(".stat-num[data-target]").forEach(el => {
+      const target   = parseInt(el.dataset.target, 10);
+      const suffix   = el.dataset.suffix || "";
+      const duration = target > 100 ? 1800 : 900;
+      let start = null;
+      (function step(ts) {
+        if (!start) start = ts;
+        const pct = Math.min((ts - start) / duration, 1);
+        el.textContent = Math.round((1 - Math.pow(1 - pct, 3)) * target) + suffix;
+        if (pct < 1) requestAnimationFrame(step);
+        else el.textContent = target + suffix;
+      })(performance.now());
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     SCROLL REVEAL
+  ───────────────────────────────────────── */
+  function initScrollReveal() {
+    const els = document.querySelectorAll(".reveal");
+    if (!("IntersectionObserver" in window)) {
+      els.forEach(el => el.classList.add("revealed"));
+      animateCounters();
+      return;
+    }
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add("revealed"); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    els.forEach(el => obs.observe(el));
+
+    // Counter fires when stats row is in view
+    const statsRow = document.querySelector(".hero-stats-row");
+    if (statsRow) {
+      const cObs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) { animateCounters(); cObs.disconnect(); }
+      }, { threshold: 0.4 });
+      cObs.observe(statsRow);
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     DEMO MODE
+  ───────────────────────────────────────── */
+  const DEMO_ID = "gettysburg-1863";
+
+  function initDemoMode() {
+    const overlay = document.createElement("div");
+    overlay.id = "demoOverlay";
+    overlay.className = "demo-overlay";
+    overlay.innerHTML = `
+      <span aria-hidden="true">🎬</span>
+      <span>Demo — <strong id="demoStepLabel">Starting…</strong></span>
+      <button id="stopDemoBtn" aria-label="Stop demo">✕ Stop</button>
+    `;
+    document.body.appendChild(overlay);
+
+    function setLabel(t) {
+      const el = document.getElementById("demoStepLabel");
+      if (el) el.textContent = t;
+    }
+
+    function runDemo() {
+      overlay.classList.add("active");
+      setLabel("Step 1 — Selecting speech…");
+      setTimeout(() => {
+        selectSpeech(DEMO_ID);
+        const card = document.querySelector(`.speech-card[data-id="${DEMO_ID}"]`);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 500);
+      setTimeout(() => {
+        setLabel("Step 2 — Research Agent filling form…");
+        goToStep(2); startResearchAgent();
+      }, 2000);
+      setTimeout(() => {
+        setLabel("Step 3 — Generating seed image…");
+        collectResearchData(); goToStep(3); generateSeedImage();
+      }, 7200);
+      setTimeout(() => {
+        setLabel("Step 4 — Building storyboard…");
+        collectResearchData();
+        const scenes = StoryboardAgent.buildScenes(state.selectedSpeech, state.researchData, state.controls);
+        state.scenes = scenes;
+        StoryboardAgent.renderScenes(scenes);
+        goToStep(4);
+      }, 11200);
+      setTimeout(() => {
+        setLabel("Step 5 — Rendering final video…");
+        goToStep(5); startVideoRender();
+      }, 14800);
+      setTimeout(() => {
+        setLabel("Demo complete ✓");
+        setTimeout(() => overlay.classList.remove("active"), 2800);
+      }, 21000);
+    }
+
+    document.getElementById("demoModeBtn")?.addEventListener("click", runDemo);
+    document.getElementById("heroDemoBtn")?.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(runDemo, 350);
+    });
+    document.getElementById("stopDemoBtn")?.addEventListener("click", () => {
+      overlay.classList.remove("active");
+      goToStep(1);
+      showToast("Demo stopped. Select a speech to continue.");
+    });
+    // Keyboard shortcut: D key starts demo
+    document.addEventListener("keydown", e => {
+      if (e.key !== "d" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const active = document.activeElement;
+      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) return;
+      runDemo();
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     RESET
+  ───────────────────────────────────────── */
+  function resetToStep1() {
+    state.selectedSpeech  = null;
+    state.researchData    = {};
+    state.seedRevisions   = 0;
+    state.scenes          = [];
+    state.activityScore   = { correct: 0, streak: 0, best: 0, times: [] };
+
+    document.querySelectorAll(".speech-card").forEach(c => c.classList.remove("selected"));
+    const nextBtn = document.getElementById("step1Next");
+    nextBtn.disabled = true;
+    nextBtn.setAttribute("aria-disabled", "true");
+
+    const loadingEl = document.getElementById("seedLoading");
+    const imgEl     = document.getElementById("seedImage");
+    if (loadingEl) loadingEl.classList.remove("hidden");
+    if (imgEl)     imgEl.classList.add("hidden");
+
+    goToStep(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 6 — INTERACTIVE ACTIVITY
+  ───────────────────────────────────────── */
+
+  // Activity questions keyed by speech id (falls back to generic)
+  const ACTIVITIES = {
+    "gettysburg-1863": [
+      { type: "mc", question: "Which war was the backdrop for the Gettysburg Address?", correct: "A",
+        options: ["American Civil War", "War of 1812", "Mexican–American War", "World War I"] },
+      { type: "tf", question: "The Gettysburg Address was delivered on a battlefield while fighting was still ongoing.", correct: "false",
+        explanation: "It was delivered at the dedication of the Soldiers' National Cemetery, four and a half months after the battle." },
+      { type: "ta", question: "Complete the opening line: 'Four score and _____ years ago…'", correct: "seven",
+        explanation: "Four score and seven years = 87 years, referring to 1776." },
+      { type: "poll", question: "Which phrase from the Address do you find most powerful?",
+        options: ["'…that all men are created equal'", "'…government of the people, by the people, for the people'",
+                  "'…these dead shall not have died in vain'", "'…a new birth of freedom'"] }
+    ],
+    "ihaveadream-1963": [
+      { type: "mc", question: "Where was the 'I Have a Dream' speech delivered?", correct: "B",
+        options: ["Capitol Building", "Lincoln Memorial", "White House lawn", "National Mall stage"] },
+      { type: "tf", question: "The 'I Have a Dream' section was entirely scripted in Dr. King's prepared text.", correct: "false",
+        explanation: "Mahalia Jackson called out 'Tell them about the dream!' and Dr. King improvised much of that famous passage." },
+      { type: "ta", question: "What march was this speech the centerpiece of?", correct: "march on washington",
+        explanation: "The March on Washington for Jobs and Freedom, August 28, 1963." },
+      { type: "poll", question: "What aspect of Dr. King's delivery do you find most impactful?",
+        options: ["The rhythm and cadence", "The biblical imagery", "The specific call to action", "The emotional power of the dream"] }
+    ]
+  };
+
+  const GENERIC_ACTIVITIES = [
+    { type: "mc", question: "What is the primary purpose of a historically significant speech?", correct: "A",
+      options: ["To persuade or inspire an audience toward a shared goal", "To entertain listeners with stories", "To demonstrate the speaker's vocabulary", "To summarise recent news events"] },
+    { type: "tf", question: "Primary historical sources are always more reliable than secondary analyses.", correct: "false",
+      explanation: "Both have value. Primary sources may reflect the biases of their time; secondary analyses provide context and critical perspective." },
+    { type: "ta", question: "What term describes the historical period in which a speech was delivered?", correct: "era",
+      explanation: "An 'era' or 'epoch' refers to a distinct period of history with defining characteristics." },
+    { type: "poll", question: "Which element of historical speeches do you find most engaging?",
+      options: ["The rhetorical techniques used", "The historical context", "The speaker's passion and delivery", "The long-term impact on history"] }
+  ];
+
+  const actState = {
+    questions:   [],
+    current:     0,
+    answered:    false,
+    score:       0,
+    streak:      0,
+    bestStreak:  0,
+    times:       [],
+    qStart:      0,
+    timer:       null
+  };
+
+  function startActivity() {
+    const id = state.selectedSpeech?.id;
+    actState.questions   = (ACTIVITIES[id] || GENERIC_ACTIVITIES).slice();
+    actState.current     = 0;
+    actState.answered    = false;
+    actState.score       = 0;
+    actState.streak      = 0;
+    actState.bestStreak  = 0;
+    actState.times       = [];
+    showActivityQuestion();
+  }
+
+  function showActivityQuestion() {
+    const q = actState.questions[actState.current];
+    if (!q) { finishActivity(); return; }
+    actState.answered = false;
+    actState.qStart   = Date.now();
+
+    // Reset feedback
+    const fb = document.getElementById("activityFeedback");
+    fb.className = "activity-feedback";
+
+    // Update progress
+    document.getElementById("activityProgress").textContent =
+      `Question ${actState.current + 1} of ${actState.questions.length}`;
+
+    // Hide next button
+    const nextBtn = document.getElementById("activityNext");
+    nextBtn.hidden = true;
+
+    // Set question text
+    document.getElementById("activityQuestion").textContent = q.question;
+
+    // Set type badge
+    const badges = { mc: ["🔵","Multiple Choice"], tf: ["⚖️","True or False"],
+                     ta: ["✏️","Type the Answer"], poll: ["📊","Poll"] };
+    const [icon, label] = badges[q.type] || ["❓","Question"];
+    document.getElementById("activityTypeIcon").textContent  = icon;
+    document.getElementById("activityTypeLabel").textContent = label;
+
+    // Hide all containers
+    ["mcContainer","tfContainer","taContainer","pollContainer"].forEach(id => {
+      document.getElementById(id).hidden = true;
+    });
+
+    // Show countdown (not for poll)
+    const cWrap = document.getElementById("countdownWrap");
+    if (q.type === "poll") {
+      cWrap.hidden = true;
+    } else {
+      cWrap.hidden = false;
+      startCountdown(q.type === "ta" ? 60 : 30);
+    }
+
+    // Show the right container and populate
+    if (q.type === "mc")   showMC(q);
+    if (q.type === "tf")   showTF(q);
+    if (q.type === "ta")   showTA(q);
+    if (q.type === "poll") showPoll(q);
+  }
+
+  function startCountdown(seconds) {
+    clearInterval(actState.timer);
+    let remaining = seconds;
+    const bar = document.getElementById("countdownBar");
+    const num = document.getElementById("countdownNum");
+
+    function tick() {
+      num.textContent = remaining;
+      bar.style.width = `${(remaining / seconds) * 100}%`;
+      const urgent = remaining <= 8;
+      bar.classList.toggle("urgent", urgent);
+      num.classList.toggle("urgent", urgent);
+      if (remaining <= 0) {
+        clearInterval(actState.timer);
+        if (!actState.answered) timeOut();
+      }
+      remaining--;
+    }
+    tick();
+    actState.timer = setInterval(tick, 1000);
+  }
+
+  function timeOut() {
+    actState.answered = true;
+    actState.streak   = 0;
+    showFeedback("incorrect", "⏱", "Time's up!", "No answer was submitted in time.");
+    document.getElementById("activityNext").hidden = false;
+  }
+
+  function showMC(q) {
+    const container = document.getElementById("mcContainer");
+    container.hidden = false;
+    const letters = ["A","B","C","D"];
+    letters.forEach((l, i) => {
+      const btn  = container.querySelector(`[data-letter="${l}"]`);
+      const text = container.querySelector(`#mc${l}`);
+      text.textContent = q.options[i] || "";
+      btn.classList.remove("selected","correct","incorrect");
+      btn.setAttribute("aria-pressed","false");
+      btn.disabled = false;
+      btn.onclick = () => answerMC(l, q.correct, q.explanation);
+    });
+  }
+
+  function answerMC(chosen, correct, explanation) {
+    if (actState.answered) return;
+    actState.answered = true;
+    clearInterval(actState.timer);
+    const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
+    actState.times.push(parseFloat(elapsed));
+
+    document.querySelectorAll(".mc-block").forEach(btn => {
+      btn.disabled = true;
+      const l = btn.dataset.letter;
+      if (l === correct) btn.classList.add("correct");
+      else if (l === chosen && chosen !== correct) btn.classList.add("incorrect");
+    });
+
+    if (chosen === correct) {
+      actState.score++;
+      actState.streak++;
+      actState.bestStreak = Math.max(actState.bestStreak, actState.streak);
+      showFeedback("correct", "✓", "Correct!", explanation || "");
+    } else {
+      actState.streak = 0;
+      showFeedback("incorrect", "✗", `Incorrect. The answer was ${correct}.`, explanation || "");
+    }
+    document.getElementById("activityNext").hidden = false;
+  }
+
+  function showTF(q) {
+    const container = document.getElementById("tfContainer");
+    container.hidden = false;
+    container.querySelectorAll(".tf-block").forEach(btn => {
+      btn.classList.remove("selected","correct","incorrect");
+      btn.setAttribute("aria-pressed","false");
+      btn.disabled = false;
+      btn.onclick = () => answerTF(btn.dataset.value, q.correct, q.explanation);
+    });
+  }
+
+  function answerTF(chosen, correct, explanation) {
+    if (actState.answered) return;
+    actState.answered = true;
+    clearInterval(actState.timer);
+    const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
+    actState.times.push(parseFloat(elapsed));
+
+    document.querySelectorAll(".tf-block").forEach(btn => {
+      btn.disabled = true;
+      if (btn.dataset.value === correct) btn.classList.add("correct");
+      else if (btn.dataset.value === chosen) btn.classList.add("incorrect");
+    });
+
+    if (chosen === correct) {
+      actState.score++;
+      actState.streak++;
+      actState.bestStreak = Math.max(actState.bestStreak, actState.streak);
+      showFeedback("correct", "✓", "Correct!", explanation || "");
+    } else {
+      actState.streak = 0;
+      showFeedback("incorrect", "✗", `Incorrect — the statement is ${correct}.`, explanation || "");
+    }
+    document.getElementById("activityNext").hidden = false;
+  }
+
+  function showTA(q) {
+    const container = document.getElementById("taContainer");
+    container.hidden = false;
+    const input = document.getElementById("taInput");
+    input.value = "";
+    input.disabled = false;
+    input.focus();
+    document.getElementById("taSubmit").onclick = () => answerTA(q.correct, q.explanation);
+    input.onkeydown = e => { if (e.key === "Enter") answerTA(q.correct, q.explanation); };
+  }
+
+  function answerTA(correct, explanation) {
+    if (actState.answered) return;
+    const input   = document.getElementById("taInput");
+    const value   = input.value.trim().toLowerCase();
+    const correctL = correct.toLowerCase();
+    actState.answered = true;
+    clearInterval(actState.timer);
+    const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
+    actState.times.push(parseFloat(elapsed));
+    input.disabled = true;
+
+    if (value === correctL || correctL.includes(value) && value.length > 2) {
+      actState.score++;
+      actState.streak++;
+      actState.bestStreak = Math.max(actState.bestStreak, actState.streak);
+      showFeedback("correct", "✓", "Correct!", explanation || "");
+    } else {
+      actState.streak = 0;
+      showFeedback("incorrect", "✗", `The answer was: "${correct}".`, explanation || "");
+    }
+    document.getElementById("activityNext").hidden = false;
+  }
+
+  function showPoll(q) {
+    const container  = document.getElementById("pollContainer");
+    const optionsList = document.getElementById("pollOptions");
+    container.hidden = false;
+    optionsList.innerHTML = q.options.map((opt, i) => `
+      <li class="poll-option" role="option" tabindex="0" aria-selected="false" data-index="${i}">
+        <span>${opt}</span>
+        <span class="poll-radio" aria-hidden="true"></span>
+      </li>
+    `).join("");
+
+    optionsList.querySelectorAll(".poll-option").forEach(li => {
+      li.addEventListener("click", () => {
+        optionsList.querySelectorAll(".poll-option").forEach(o => {
+          o.classList.remove("selected");
+          o.setAttribute("aria-selected","false");
+        });
+        li.classList.add("selected");
+        li.setAttribute("aria-selected","true");
+      });
+      li.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
+      });
+    });
+
+    document.getElementById("pollSubmit").onclick = () => {
+      if (actState.answered) return;
+      const selected = optionsList.querySelector(".poll-option.selected");
+      if (!selected) { showToast("Please select an option first."); return; }
+      actState.answered = true;
+      optionsList.querySelectorAll(".poll-option").forEach(o => o.style.pointerEvents = "none");
+      showFeedback("neutral", "📊", "Vote recorded — thanks!", "Polls have no right or wrong answer.");
+      document.getElementById("activityNext").hidden = false;
+    };
+  }
+
+  function showFeedback(type, icon, main, explanation) {
+    const fb   = document.getElementById("activityFeedback");
+    const fbI  = document.getElementById("feedbackIcon");
+    const fbM  = document.getElementById("feedbackMain");
+    const fbE  = document.getElementById("feedbackExplanation");
+    fb.className = `activity-feedback ${type} show`;
+    fbI.textContent = icon;
+    fbM.textContent = main;
+    fbE.textContent = explanation;
+  }
+
+  function finishActivity() {
+    goToStep(7);
+    buildSummary();
+  }
+
+  function initStep6() {
+    document.getElementById("step6Back").addEventListener("click", () => goToStep(5));
+    document.getElementById("activityNext").addEventListener("click", () => {
+      actState.current++;
+      showActivityQuestion();
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     STEP 7 — END OF SPEECH SUMMARY
+  ───────────────────────────────────────── */
+
+  const SPEECH_KEY_POINTS = {
+    "gettysburg-1863": [
+      "Lincoln invoked the founding principle that 'all men are created equal' to reframe the Civil War as a fight for equality.",
+      "The speech redefined the purpose of the war from preserving the Union to ending slavery.",
+      "At only 272 words, it remains one of the most quoted speeches in American history.",
+      "Lincoln honoured the soldiers' sacrifice by arguing their deaths had consecrated the ground more than any words could.",
+      "The closing phrase 'government of the people, by the people, for the people' became a global definition of democracy."
+    ],
+    "ihaveadream-1963": [
+      "Dr. King drew on the Declaration of Independence, describing it as a 'promissory note' to all Americans.",
+      "The improvisational 'dream' section was sparked by Mahalia Jackson calling out from the crowd.",
+      "The speech directly contributed to the passage of the Civil Rights Act of 1964.",
+      "King used the rhetorical device of anaphora — repetition of 'I have a dream' — for maximum emotional impact.",
+      "The speech called for racial justice not through violence, but through 'soul force'."
+    ]
+  };
+
+  const GENERIC_KEY_POINTS = [
+    "Historical speeches reflect the values, fears, and aspirations of their era.",
+    "Rhetoric — the art of persuasion — has shaped political outcomes across centuries.",
+    "Primary sources like speeches give us direct insight into how historical figures communicated.",
+    "Context is critical: understanding the audience and occasion transforms how we interpret a speech.",
+    "Great speeches often combine emotional appeal, logical argument, and ethical credibility."
+  ];
+
+  const SEGMENT_TITLES = [
+    "Opening & Context", "Central Argument", "Evidence & Examples",
+    "Emotional Appeal", "Closing & Call to Action"
+  ];
+
+  function buildSummary() {
+    const sp   = state.selectedSpeech;
+    const total = actState.questions.length;
+
+    // Score card
+    document.getElementById("scoreFinal").textContent  = actState.score;
+    document.getElementById("scoreCorrect").textContent = actState.score;
+    document.getElementById("scoreStreak").textContent  = actState.bestStreak;
+    const avgTime = actState.times.length
+      ? (actState.times.reduce((a,b)=>a+b,0) / actState.times.length).toFixed(1) + "s"
+      : "—";
+    document.getElementById("scoreTime").textContent = avgTime;
+
+    // Denominator
+    const denomEl = document.querySelector("#scoreCard .score-denom");
+    if (denomEl) denomEl.textContent = `/${total}`;
+
+    // Summary hero
+    if (sp) {
+      document.getElementById("summaryEmoji").textContent    = sp.emoji || "🎬";
+      document.getElementById("step7Title2").textContent     = `${sp.figure} — Done!`;
+      document.getElementById("summarySubtitle").textContent = `"${sp.speech}" · ${displayYear(sp.year)}`;
+    }
+
+    // Key points
+    const points = SPEECH_KEY_POINTS[sp?.id] || GENERIC_KEY_POINTS;
+    const kpList = document.getElementById("keyPointsList");
+    kpList.innerHTML = points.map((pt, i) => `
+      <li class="key-point-item">
+        <span class="key-point-num" aria-hidden="true">${i + 1}</span>
+        <span>${pt}</span>
+      </li>
+    `).join("");
+
+    // Replay segments
+    const replayGrid = document.getElementById("replayGrid");
+    replayGrid.innerHTML = SEGMENT_TITLES.map((title, i) => `
+      <button class="replay-seg-btn" aria-label="Replay segment ${i+1}: ${title}" role="listitem">
+        <span class="replay-seg-num">Segment ${i + 1}</span>
+        <span class="replay-seg-title">${title}</span>
+        <span class="replay-seg-dur">~${30 + i * 10}s</span>
+        <span class="replay-icon" aria-hidden="true">▶</span>
+      </button>
+    `).join("");
+
+    replayGrid.querySelectorAll(".replay-seg-btn").forEach((btn, i) => {
+      btn.addEventListener("click", () => {
+        showToast(`▶ Replaying: Segment ${i+1} — ${SEGMENT_TITLES[i]}`);
+      });
+    });
+
+    // Side details
+    const r  = state.researchData;
+    const dl = document.getElementById("summaryDetailsList");
+    if (dl && sp) {
+      dl.innerHTML = [
+        ["Speaker",  r.speakerName  || sp.figure],
+        ["Speech",   r.speechTitle  || sp.speech],
+        ["Date",     r.speechDate   || displayYear(sp.year)],
+        ["Location", [r.locationCity, r.locationCountry].filter(Boolean).join(", ") || "—"],
+        ["Score",    `${actState.score} / ${total}`]
+      ].map(([dt,dd]) => `<dt>${dt}</dt><dd>${dd || "—"}</dd>`).join("");
+    }
+  }
+
+  function initStep7() {
+    document.getElementById("step7Back").addEventListener("click", () => goToStep(6));
+    document.getElementById("step7Restart").addEventListener("click", resetToStep1);
+    document.getElementById("tryAnotherSpeech").addEventListener("click", resetToStep1);
+    document.getElementById("downloadSummary").addEventListener("click", () => {
+      showToast("⬇ In production, this would download a PDF summary.");
+    });
+    document.getElementById("shareResult").addEventListener("click", () => {
+      const sp    = state.selectedSpeech;
+      const total = actState.questions.length;
+      const text  = `I scored ${actState.score}/${total} on the HistoryLive activity for "${sp?.speech}" — ${sp?.figure}! historyLive.app`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => showToast("✓ Share text copied!"));
+      } else {
+        showToast("↗ Share: " + text);
+      }
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     INIT
+  ───────────────────────────────────────── */
+  document.addEventListener("DOMContentLoaded", () => {
+    initStep1();
+    initStep2();
+    initStep3();
+    initStep4();
+    initStep5();
+    initStep6();
+    initStep7();
+    initModal();
+    initDemoMode();
+    initHeroCanvas();
+    initScrollReveal();
+    goToStep(1);
+  });
+
+})();
