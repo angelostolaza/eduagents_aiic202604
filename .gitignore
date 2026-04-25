@@ -156,6 +156,13 @@ temp/
 .classpath
 .settings/
 
+# ---------- Large media (exceed GitHub 100MB limit) ----------
+video/*.mp4
+video/*.mov
+video/*.avi
+*.mp4
+*.mov
+
 # ---------- OS ----------
 # Windows
 Thumbs.db
