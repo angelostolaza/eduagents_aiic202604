@@ -12,7 +12,7 @@ RUN apt-get update \
 RUN pip install --no-cache-dir hatch
 
 # Copy project metadata first (layer cache)
-COPY pyproject.toml .
+COPY pyproject.toml README.md ./
 COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
