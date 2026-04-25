@@ -45,9 +45,9 @@
     <canvas id="heroCanvas" class="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-film-bars" aria-hidden="true"><span></span><span></span></div>
     <div class="hero-video-showcase">
-      <video class="hero-showcase-video" id="heroShowcaseVideo" autoplay muted loop playsinline>
-        <source src="video/VozEra.mp4" type="video/mp4" />
-      </video>
+      <iframe class="hero-showcase-video" id="heroShowcaseVideo"
+        src="https://www.youtube.com/embed/-6nSrEV42Ks?autoplay=1&mute=1&loop=1&playlist=-6nSrEV42Ks&controls=0&modestbranding=1&playsinline=1"
+        allow="autoplay; fullscreen" allowfullscreen title="VozEra Demo"></iframe>
       <button class="video-play-btn" id="videoPlayBtn" aria-label="Pause video">
         <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5,3 19,12 5,21" />
@@ -643,7 +643,11 @@
     (function () {
       const video = document.getElementById('heroShowcaseVideo');
       const btn = document.getElementById('videoPlayBtn');
-      if (!video || !btn) return;
+      // Hide play/pause button when the hero is a YouTube iframe
+      if (!video || !btn || video.tagName === 'IFRAME') {
+        if (btn) btn.style.display = 'none';
+        return;
+      }
       // Start in playing state
       btn.classList.add('is-playing');
       btn.addEventListener('click', function () {

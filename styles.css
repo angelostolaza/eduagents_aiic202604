@@ -173,6 +173,8 @@ body {
 .hero-showcase-video {
   display: block; width: 100%; height: auto;
   object-fit: cover;
+  border: none;
+  aspect-ratio: 16/9;
 }
 
 /* Play / Pause overlay button */
