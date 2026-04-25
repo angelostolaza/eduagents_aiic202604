@@ -174,6 +174,138 @@
     "Nelson Mandela":             "images/MalcolmX.png"        // fallback
   };
 
+  // All available video files with their figure + title metadata
+  const ALL_VIDEOS = [
+    { fig: "Abraham Lincoln", title: "Gettysburg Address",  src: "video/gettysburg%20address.mp4" },
+    { fig: "John F. Kennedy", title: "Moon Speech",          src: "video/John%20F.%20Kennedy.mp4" },
+    { fig: "Hammurabi",       title: "Code of Hammurabi",    src: "video/Hammurabi.mp4" },
+    { fig: "Sojourner Truth", title: "Ain't I a Woman?",     src: "video/Sojourner%20Truth's.mp4" },
+    { fig: "VozEra",          title: "VozEra Demo",          src: "video/VozEra.mp4" }
+  ];
+
+  // Carousel state for the step-2 video spotlight
+  const rvState = { items: [], current: 0, timer: null };
+
+  function rvUpdate() {
+    const { items, current } = rvState;
+    const total = items.length;
+    if (!total) return;
+
+    const prev = (current - 1 + total) % total;
+    const next = (current + 1) % total;
+
+    items.forEach((item, idx) => {
+      const vid = item.querySelector("video");
+      item.classList.remove("rv-active", "rv-prev", "rv-next");
+      if (idx === current) {
+        item.classList.add("rv-active");
+        if (vid) { vid.currentTime = 0; vid.play().catch(() => {}); }
+      } else if (idx === prev) {
+        item.classList.add("rv-prev");
+        if (vid) vid.pause();
+      } else if (idx === next) {
+        item.classList.add("rv-next");
+        if (vid) vid.pause();
+      } else {
+        if (vid) vid.pause();
+      }
+    });
+
+    const active = items[current];
+    const capTitle = document.getElementById("rvCapTitle");
+    const capFig   = document.getElementById("rvCapFig");
+    if (capTitle) capTitle.textContent = active.dataset.title || "";
+    if (capFig)   capFig.textContent   = active.dataset.fig   || "";
+  }
+
+  function rvStartTimer() { /* auto-loop disabled — arrows only */ }
+  function rvResetTimer() { /* auto-loop disabled — arrows only */ }
+
+  // Build & populate the spotlight carousel, putting figure's video first
+  function updateVideoSection(figureName) {
+    const spotlight = document.getElementById("rvSpotlight");
+    if (!spotlight) return;
+
+    // Reorder: selected figure's video first, then the rest
+    const figIdx = ALL_VIDEOS.findIndex(v => v.fig === figureName);
+    const ordered = figIdx !== -1
+      ? [ALL_VIDEOS[figIdx], ...ALL_VIDEOS.slice(0, figIdx), ...ALL_VIDEOS.slice(figIdx + 1)]
+      : ALL_VIDEOS.slice();
+
+    // Clear & rebuild DOM items
+    spotlight.innerHTML = "";
+    rvState.items = [];
+    rvState.current = 0;
+    clearInterval(rvState.timer);
+
+    ordered.forEach(v => {
+      const item = document.createElement("div");
+      item.className   = "rv-item";
+      item.dataset.title = v.title;
+      item.dataset.fig   = v.fig;
+
+      const vid = document.createElement("video");
+      vid.className = "rv-video";
+      vid.muted      = true;
+      vid.loop       = true;
+      vid.playsInline = true;
+      const source = document.createElement("source");
+      source.src  = v.src;
+      source.type = "video/mp4";
+      vid.appendChild(source);
+
+      item.appendChild(vid);
+      spotlight.appendChild(item);
+      rvState.items.push(item);
+
+      // Click on active item — open modal; click on prev/next — navigate
+      item.addEventListener("click", () => {
+        if (item.classList.contains("rv-active")) {
+          const src = v.src;
+          const modal     = document.getElementById("rvModal");
+          const modalVid  = document.getElementById("rvModalVideo");
+          const modalTitle = document.getElementById("rvModalTitle");
+          const modalFig   = document.getElementById("rvModalFig");
+          if (modal && modalVid) {
+            modalVid.src = src;
+            if (modalTitle) modalTitle.textContent = v.title;
+            if (modalFig)   modalFig.textContent   = v.fig;
+            modal.classList.add("is-open");
+            modalVid.currentTime = 0;
+            modalVid.play().catch(() => {});
+          }
+        } else {
+          rvState.current = rvState.items.indexOf(item);
+          rvUpdate();
+          rvResetTimer();
+        }
+      });
+    });
+
+    rvUpdate();
+    rvStartTimer();
+
+    // Wire arrow buttons (safe to re-attach since we replace listeners)
+    const prevBtn = document.getElementById("rvPrev");
+    const nextBtn = document.getElementById("rvNext");
+    if (prevBtn) {
+      const newPrev = prevBtn.cloneNode(true);
+      prevBtn.parentNode.replaceChild(newPrev, prevBtn);
+      newPrev.addEventListener("click", () => {
+        rvState.current = (rvState.current - 1 + rvState.items.length) % rvState.items.length;
+        rvUpdate(); rvResetTimer();
+      });
+    }
+    if (nextBtn) {
+      const newNext = nextBtn.cloneNode(true);
+      nextBtn.parentNode.replaceChild(newNext, nextBtn);
+      newNext.addEventListener("click", () => {
+        rvState.current = (rvState.current + 1) % rvState.items.length;
+        rvUpdate(); rvResetTimer();
+      });
+    }
+  }
+
   function startResearchAgent() {
     if (!state.selectedSpeech) return;
     const s = state.selectedSpeech;
@@ -192,11 +324,14 @@
     if (spEl)   spEl.textContent   = s.speech;
     if (metaEl) metaEl.textContent = `${displayYear(s.year)} · ${eraLabel(s.era)}`;
 
-    // Pre-fill prompt textarea with a sensible default
+    // Always update prompt to match the selected figure/speech
     const prompt = document.getElementById("videoPrompt");
-    if (prompt && !prompt.value) {
+    if (prompt) {
       prompt.value = `Cinematic portrayal of ${s.figure} delivering the ${s.speech}, ${displayYear(s.year)}.`;
     }
+
+    // Update the sample video section: show selected figure's video first, others below
+    updateVideoSection(s.figure);
 
     // Keep hidden elements in sync for JS compatibility
     const scbFigure = document.getElementById("scbFigure");

@@ -197,10 +197,6 @@
 
         <!-- LEFT: Portrait -->
         <div class="ri-left">
-          <div class="ri-logo-wrap">
-            <img src="VozEra%20Logo/slides-logo-256x256.png" alt="VozEra" class="ri-logo" />
-            <span class="ri-logo-text">VozEra</span>
-          </div>
           <div class="ri-portrait-wrap">
             <img id="riFigureImg" src="images/Abrahamlincon.png" alt="" class="ri-portrait" />
           </div>
@@ -236,30 +232,21 @@
           </div>
         </div>
 
-        <!-- RIGHT: Sample videos carousel -->
+        <!-- RIGHT: Sample videos spotlight carousel -->
         <div class="ri-videos">
           <p class="ri-videos-label">Sample Videos</p>
           <button class="rv-arrow rv-arrow--up" id="rvPrev" aria-label="Previous video">
             <svg viewBox="0 0 24 24" fill="currentColor"><polyline points="18,15 12,9 6,15"/></svg>
           </button>
           <div class="rv-spotlight" id="rvSpotlight">
-            <div class="rv-item rv-active" data-title="Gettysburg Address" data-fig="Abraham Lincoln">
-              <video class="rv-video" autoplay muted loop playsinline>
-                <source src="video/gettysburg%20address.mp4" type="video/mp4" />
-              </video>
-            </div>
-            <div class="rv-item" data-title="Featured Speech" data-fig="VozEra Demo">
-              <video class="rv-video" muted loop playsinline>
-                <source src="video/VozEra.mp4" type="video/mp4" />
-              </video>
-            </div>
+            <!-- Populated by JS based on selected figure -->
           </div>
           <button class="rv-arrow rv-arrow--down" id="rvNext" aria-label="Next video">
             <svg viewBox="0 0 24 24" fill="currentColor"><polyline points="6,9 12,15 18,9"/></svg>
           </button>
           <div class="rv-caption">
-            <span class="rv-cap-title" id="rvCapTitle">Gettysburg Address</span>
-            <span class="rv-cap-fig" id="rvCapFig">Abraham Lincoln</span>
+            <span class="rv-cap-title" id="rvCapTitle"></span>
+            <span class="rv-cap-fig" id="rvCapFig"></span>
           </div>
         </div>
 
@@ -448,45 +435,6 @@
             <button class="btn btn-primary full-width" id="downloadVideo">⬇ Download Video</button>
             <button class="btn btn-secondary full-width" id="shareVideo">↗ Share Link</button>
             <button class="btn btn-ghost full-width" id="startOver">+ Start New Speech</button>
-          </div>
-
-          <!-- ── 3D Bust Viewer ── -->
-          <div class="bust-viewer-card" id="bustViewerCard">
-            <div class="bust-viewer-hd">
-              <span class="bust-viewer-icon" aria-hidden="true">🏛️</span>
-              <div class="bust-viewer-hd-info">
-                <div class="bust-viewer-title">3D Bust — <span id="bustFigureLabel">Figure</span></div>
-                <div class="bust-viewer-sub">Drag to rotate · AI reconstruction</div>
-              </div>
-              <span class="bust-confidence-badge" title="AI approximation — not a verified likeness">speculative</span>
-            </div>
-            <div class="bust-canvas-wrap" id="bustCanvasWrap">
-              <!-- Idle state -->
-              <div class="bust-state bust-idle" id="bustIdle">
-                <span class="bust-state-icon" aria-hidden="true">🎲</span>
-                <p>No 3D bust generated yet.</p>
-                <button class="bust-gen-btn" id="generateBustBtn">✦ Generate 3D Bust</button>
-              </div>
-              <!-- Loading state -->
-              <div class="bust-state bust-loading" id="bustLoading" hidden>
-                <div class="spinner" aria-hidden="true"></div>
-                <p>Generating bust…</p>
-                <div class="bust-progress-wrap" aria-hidden="true">
-                  <div class="bust-progress-fill" id="bustProgress"></div>
-                </div>
-              </div>
-              <!-- Three.js canvas (shown when GLB loaded) -->
-              <canvas id="bustCanvas" class="bust-canvas" hidden
-                aria-label="Interactive 3D bust of historical figure — drag to rotate"></canvas>
-              <!-- Error state -->
-              <div class="bust-state bust-error" id="bustError" hidden>
-                <span class="bust-state-icon" aria-hidden="true">⚠</span>
-                <p id="bustErrorMsg">Could not load 3D bust.</p>
-                <button class="bust-gen-btn" id="retryBustBtn">↺ Retry</button>
-              </div>
-            </div>
-            <p class="bust-disclaimer">3D reconstructions are approximations. Confidence: <strong>speculative</strong>.
-            </p>
           </div>
 
           <div class="caption-section">
@@ -709,89 +657,6 @@
           btn.setAttribute('aria-label', 'Play video');
         }
       });
-    })();
-
-    // Video spotlight carousel (step 2 right column)
-    (function () {
-      var items  = Array.from(document.querySelectorAll('.rv-item'));
-      var prevBtn = document.getElementById('rvPrev');
-      var nextBtn = document.getElementById('rvNext');
-      var capTitle = document.getElementById('rvCapTitle');
-      var capFig   = document.getElementById('rvCapFig');
-      if (!items.length) return;
-      var total   = items.length;
-      var current = 0;
-      var timer;
-
-      function updateRv() {
-        items.forEach(function (item, idx) {
-          var vid = item.querySelector('video');
-          item.classList.remove('rv-active', 'rv-prev', 'rv-next');
-          var prev = (current - 1 + total) % total;
-          var next = (current + 1) % total;
-          if (idx === current) {
-            item.classList.add('rv-active');
-            if (vid) { vid.currentTime = 0; vid.play(); }
-          } else if (idx === prev) {
-            item.classList.add('rv-prev');
-            if (vid) vid.pause();
-          } else if (idx === next) {
-            item.classList.add('rv-next');
-            if (vid) vid.pause();
-          } else {
-            if (vid) vid.pause();
-          }
-        });
-        var active = items[current];
-        if (capTitle) capTitle.textContent = active.dataset.title || '';
-        if (capFig)   capFig.textContent   = active.dataset.fig   || '';
-      }
-
-      function advance() { current = (current + 1) % total; updateRv(); }
-      function startTimer() { timer = setInterval(advance, 5000); }
-      function resetTimer() { clearInterval(timer); startTimer(); }
-
-      updateRv();
-      startTimer();
-
-      if (prevBtn) prevBtn.addEventListener('click', function () { current = (current - 1 + total) % total; updateRv(); resetTimer(); });
-      if (nextBtn) nextBtn.addEventListener('click', function () { advance(); resetTimer(); });
-
-      items.forEach(function (item, idx) {
-        item.addEventListener('click', function () {
-          if (!item.classList.contains('rv-active')) {
-            current = idx; updateRv(); resetTimer();
-          } else {
-            // open modal with this video
-            var src = item.querySelector('source') ? item.querySelector('source').src : '';
-            var modal = document.getElementById('rvModal');
-            var modalVid = document.getElementById('rvModalVideo');
-            var modalTitle = document.getElementById('rvModalTitle');
-            var modalFig   = document.getElementById('rvModalFig');
-            if (modal && modalVid) {
-              modalVid.src = src;
-              if (modalTitle) modalTitle.textContent = item.dataset.title || '';
-              if (modalFig)   modalFig.textContent   = item.dataset.fig   || '';
-              modal.classList.add('is-open');
-              modalVid.currentTime = 0;
-              modalVid.play();
-            }
-          }
-        });
-      });
-
-      // close modal
-      var rvModal = document.getElementById('rvModal');
-      var rvClose = document.getElementById('rvModalClose');
-      function closeRvModal() {
-        if (!rvModal) return;
-        var v = document.getElementById('rvModalVideo');
-        if (v) { v.pause(); v.src = ''; }
-        rvModal.classList.remove('is-open');
-      }
-      if (rvClose) rvClose.addEventListener('click', closeRvModal);
-      if (rvModal) rvModal.addEventListener('click', function (e) { if (e.target === rvModal) closeRvModal(); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRvModal(); });
     })();
 
     // Gallery spotlight
