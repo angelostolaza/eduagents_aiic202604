@@ -473,35 +473,53 @@
     }, 320);
   }
 
+  // Map speech IDs to their local video files
+  const SPEECH_VIDEOS = {
+    "gettysburg-1863":  "video/gettysburg address.mp4",
+    "jfk-moon-speech":  "video/jfk.mp4",
+    "hammurabi-code":   "video/HammurabiReadingCode.mp4"
+  };
+
   function showVideoComplete() {
     const metaEl   = document.getElementById("videoMeta");
     const loading  = document.getElementById("videoLoading");
-
-    // Replace loading with a styled placeholder
-    const placeholder = document.createElement("div");
-    placeholder.style.cssText = `
-      width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      background:linear-gradient(160deg,rgba(45,31,94,0.9),rgba(19,16,42,0.95));color:var(--accent);gap:12px;border-radius:20px;
-    `;
     const sp = state.selectedSpeech;
-    placeholder.innerHTML = `
-      <div style="font-size:4rem">${sp?.emoji || "🎬"}</div>
-      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#E8E4F8;text-align:center;padding:0 2rem">
-        ${sp?.figure || "Historical Figure"}
-      </div>
-      <div style="font-size:.9rem;color:#9B96C0;font-style:italic;text-align:center;padding:0 2rem">
-        "${sp?.speech || "Historical Speech"}"
-      </div>
-      <div style="font-size:.75rem;color:#9B96C0;margin-top:8px">
-        ${state.controls.colorGrade.toUpperCase()} · ${state.controls.aspectRatio} · ${
-          state.controls.perspective === "audience-pov" ? "Audience POV" : "Multi-Shot Cinematic"
-        }
-      </div>
-      <div style="margin-top:12px;background:rgba(58,191,191,.15);border:1px solid rgba(58,191,191,.3);padding:8px 20px;border-radius:9999px;font-size:.78rem;color:#3ABFBF">
-        ✦ Video Ready — Connect AI Video API to render
-      </div>
-    `;
-    loading.replaceWith(placeholder);
+
+    const videoFile = sp && SPEECH_VIDEOS[sp.id];
+    if (videoFile) {
+      // Show the real video player
+      const finalVideo = document.getElementById("finalVideo");
+      loading.classList.add("hidden");
+      finalVideo.src = videoFile;
+      finalVideo.classList.remove("hidden");
+      finalVideo.load();
+      finalVideo.play().catch(() => {}); // autoplay may be blocked; controls let user play
+    } else {
+      // Fallback styled placeholder for speeches without a local video
+      const placeholder = document.createElement("div");
+      placeholder.style.cssText = `
+        width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        background:linear-gradient(160deg,rgba(45,31,94,0.9),rgba(19,16,42,0.95));color:var(--accent);gap:12px;border-radius:20px;
+      `;
+      placeholder.innerHTML = `
+        <div style="font-size:4rem">${sp?.emoji || "🎬"}</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#E8E4F8;text-align:center;padding:0 2rem">
+          ${sp?.figure || "Historical Figure"}
+        </div>
+        <div style="font-size:.9rem;color:#9B96C0;font-style:italic;text-align:center;padding:0 2rem">
+          "${sp?.speech || "Historical Speech"}"
+        </div>
+        <div style="font-size:.75rem;color:#9B96C0;margin-top:8px">
+          ${state.controls.colorGrade.toUpperCase()} · ${state.controls.aspectRatio} · ${
+            state.controls.perspective === "audience-pov" ? "Audience POV" : "Multi-Shot Cinematic"
+          }
+        </div>
+        <div style="margin-top:12px;background:rgba(58,191,191,.15);border:1px solid rgba(58,191,191,.3);padding:8px 20px;border-radius:9999px;font-size:.78rem;color:#3ABFBF">
+          ✦ Video Ready — Connect AI Video API to render
+        </div>
+      `;
+      loading.replaceWith(placeholder);
+    }
 
     // Populate speech card below video
     const titleEl    = document.getElementById("videoSpeechTitle");
