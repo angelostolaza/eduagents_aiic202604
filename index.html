@@ -46,7 +46,7 @@
     <div class="hero-film-bars" aria-hidden="true"><span></span><span></span></div>
     <div class="hero-video-showcase">
       <video class="hero-showcase-video" id="heroShowcaseVideo" autoplay muted loop playsinline>
-        <source src="video/Untitled%20video.mp4" type="video/mp4" />
+        <source src="video/VozEra.mp4" type="video/mp4" />
       </video>
       <button class="video-play-btn" id="videoPlayBtn" aria-label="Pause video">
         <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -514,26 +514,11 @@
 
       <div class="activity-layout" id="activityLayout">
 
-        <!-- Activity type badge -->
-        <div class="activity-type-badge" id="activityTypeBadge" aria-live="polite">
-          <span id="activityTypeIcon" aria-hidden="true">❓</span>
-          <span id="activityTypeLabel">Question</span>
-        </div>
-
-        <!-- Countdown timer (hidden for poll type) -->
-        <div class="countdown-wrap" id="countdownWrap" aria-label="Time remaining">
-          <div class="countdown-bar-track" aria-hidden="true">
-            <div class="countdown-bar-fill" id="countdownBar"></div>
-          </div>
-          <span class="countdown-num" id="countdownNum" aria-live="polite" aria-atomic="true">30</span>
-          <span class="sr-only">seconds remaining</span>
-        </div>
-
         <!-- Question text -->
         <p class="activity-question" id="activityQuestion" aria-live="polite"></p>
 
-        <!-- ── MULTIPLE CHOICE (shown/hidden by JS) ── -->
-        <div id="mcContainer" class="mc-grid" role="group" aria-label="Answer choices" hidden>
+        <!-- Multiple choice answers -->
+        <div id="mcContainer" class="mc-grid" role="group" aria-label="Answer choices">
           <button class="mc-block" data-letter="A" aria-pressed="false">
             <span class="mc-letter" aria-hidden="true">A</span>
             <span class="mc-text" id="mcA"></span>
@@ -550,37 +535,6 @@
             <span class="mc-letter" aria-hidden="true">D</span>
             <span class="mc-text" id="mcD"></span>
           </button>
-        </div>
-
-        <!-- ── TRUE / FALSE (shown/hidden by JS) ── -->
-        <div id="tfContainer" class="tf-grid" role="group" aria-label="True or false" hidden>
-          <button class="tf-block" data-value="true" aria-pressed="false">
-            <span class="tf-icon" aria-hidden="true">✓</span>
-            <span class="tf-label">True</span>
-          </button>
-          <button class="tf-block" data-value="false" aria-pressed="false">
-            <span class="tf-icon" aria-hidden="true">✗</span>
-            <span class="tf-label">False</span>
-          </button>
-        </div>
-
-        <!-- ── TYPE THE ANSWER (shown/hidden by JS) ── -->
-        <div id="taContainer" class="ta-wrap" hidden>
-          <label for="taInput" class="sr-only">Your answer</label>
-          <input type="text" id="taInput" class="ta-input" placeholder="Type your answer here…" autocomplete="off"
-            aria-label="Type your answer" />
-          <button class="btn btn-primary ta-submit" id="taSubmit">Submit Answer</button>
-        </div>
-
-        <!-- ── POLL (shown/hidden by JS) ── -->
-        <div id="pollContainer" hidden>
-          <ul class="poll-options" id="pollOptions" role="listbox" aria-label="Poll options"
-            aria-multiselectable="false">
-            <!-- Injected by JS -->
-          </ul>
-          <div class="step-actions" style="margin-top:var(--space-4);padding-top:0;">
-            <button class="btn btn-primary" id="pollSubmit">Submit Vote</button>
-          </div>
         </div>
 
         <!-- Feedback banner -->

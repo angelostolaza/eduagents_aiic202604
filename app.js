@@ -829,37 +829,41 @@
   // Activity questions keyed by speech id (falls back to generic)
   const ACTIVITIES = {
     "gettysburg-1863": [
-      { type: "mc", question: "Which war was the backdrop for the Gettysburg Address?", correct: "A",
+      { question: "Which war was the backdrop for the Gettysburg Address?", correct: "A",
         options: ["American Civil War", "War of 1812", "Mexican–American War", "World War I"] },
-      { type: "tf", question: "The Gettysburg Address was delivered on a battlefield while fighting was still ongoing.", correct: "false",
+      { question: "Where was the Gettysburg Address actually delivered?", correct: "B",
+        options: ["On the battlefield at Gettysburg", "At the Soldiers' National Cemetery dedication", "In the U.S. Capitol", "At the White House"],
         explanation: "It was delivered at the dedication of the Soldiers' National Cemetery, four and a half months after the battle." },
-      { type: "ta", question: "Complete the opening line: 'Four score and _____ years ago…'", correct: "seven",
-        explanation: "Four score and seven years = 87 years, referring to 1776." },
-      { type: "poll", question: "Which phrase from the Address do you find most powerful?",
-        options: ["'…that all men are created equal'", "'…government of the people, by the people, for the people'",
-                  "'…these dead shall not have died in vain'", "'…a new birth of freedom'"] }
+      { question: "Complete the opening: 'Four score and _____ years ago…'", correct: "C",
+        options: ["Twenty", "Forty", "Seven", "Eleven"],
+        explanation: "Four score and seven = 87 years, counting back from 1863 to 1776." },
+      { question: "What does Lincoln call for in the closing line of the Address?", correct: "A",
+        options: ["Government of the people, by the people, for the people", "Victory at all costs", "Punishment of the Confederacy", "A new constitutional convention"] }
     ],
     "ihaveadream-1963": [
-      { type: "mc", question: "Where was the 'I Have a Dream' speech delivered?", correct: "B",
+      { question: "Where was the 'I Have a Dream' speech delivered?", correct: "B",
         options: ["Capitol Building", "Lincoln Memorial", "White House lawn", "National Mall stage"] },
-      { type: "tf", question: "The 'I Have a Dream' section was entirely scripted in Dr. King's prepared text.", correct: "false",
-        explanation: "Mahalia Jackson called out 'Tell them about the dream!' and Dr. King improvised much of that famous passage." },
-      { type: "ta", question: "What march was this speech the centerpiece of?", correct: "march on washington",
-        explanation: "The March on Washington for Jobs and Freedom, August 28, 1963." },
-      { type: "poll", question: "What aspect of Dr. King's delivery do you find most impactful?",
-        options: ["The rhythm and cadence", "The biblical imagery", "The specific call to action", "The emotional power of the dream"] }
+      { question: "Which singer's encouragement inspired Dr. King to improvise the 'I Have a Dream' passage?", correct: "C",
+        options: ["Aretha Franklin", "Nina Simone", "Mahalia Jackson", "Ella Fitzgerald"],
+        explanation: "Mahalia Jackson called out 'Tell them about the dream!' prompting Dr. King to set aside his prepared text." },
+      { question: "What was the official name of the march this speech headlined?", correct: "A",
+        options: ["March on Washington for Jobs and Freedom", "Selma to Montgomery March", "Chicago Freedom Movement March", "Poor People's Campaign March"],
+        explanation: "The March on Washington for Jobs and Freedom took place on August 28, 1963." },
+      { question: "In what year was the 'I Have a Dream' speech delivered?", correct: "B",
+        options: ["1955", "1963", "1968", "1960"] }
     ]
   };
 
   const GENERIC_ACTIVITIES = [
-    { type: "mc", question: "What is the primary purpose of a historically significant speech?", correct: "A",
+    { question: "What is the primary purpose of a historically significant speech?", correct: "A",
       options: ["To persuade or inspire an audience toward a shared goal", "To entertain listeners with stories", "To demonstrate the speaker's vocabulary", "To summarise recent news events"] },
-    { type: "tf", question: "Primary historical sources are always more reliable than secondary analyses.", correct: "false",
-      explanation: "Both have value. Primary sources may reflect the biases of their time; secondary analyses provide context and critical perspective." },
-    { type: "ta", question: "What term describes the historical period in which a speech was delivered?", correct: "era",
-      explanation: "An 'era' or 'epoch' refers to a distinct period of history with defining characteristics." },
-    { type: "poll", question: "Which element of historical speeches do you find most engaging?",
-      options: ["The rhetorical techniques used", "The historical context", "The speaker's passion and delivery", "The long-term impact on history"] }
+    { question: "What term describes documents created at the time of an event by participants?", correct: "B",
+      options: ["Secondary sources", "Primary sources", "Tertiary sources", "Archival summaries"] },
+    { question: "What term describes the historical period in which a speech was delivered?", correct: "C",
+      options: ["Genre", "Narrative", "Era", "Chronicle"],
+      explanation: "An 'era' refers to a distinct period of history with defining characteristics." },
+    { question: "Which rhetorical device repeats a phrase at the start of successive clauses?", correct: "A",
+      options: ["Anaphora", "Metaphor", "Hyperbole", "Alliteration"] }
   ];
 
   const actState = {
@@ -870,8 +874,7 @@
     streak:      0,
     bestStreak:  0,
     times:       [],
-    qStart:      0,
-    timer:       null
+    qStart:      0
   };
 
   function startActivity() {
@@ -901,72 +904,17 @@
       `Question ${actState.current + 1} of ${actState.questions.length}`;
 
     // Hide next button
-    const nextBtn = document.getElementById("activityNext");
-    nextBtn.hidden = true;
+    document.getElementById("activityNext").hidden = true;
 
     // Set question text
     document.getElementById("activityQuestion").textContent = q.question;
 
-    // Set type badge
-    const badges = { mc: ["🔵","Multiple Choice"], tf: ["⚖️","True or False"],
-                     ta: ["✏️","Type the Answer"], poll: ["📊","Poll"] };
-    const [icon, label] = badges[q.type] || ["❓","Question"];
-    document.getElementById("activityTypeIcon").textContent  = icon;
-    document.getElementById("activityTypeLabel").textContent = label;
-
-    // Hide all containers
-    ["mcContainer","tfContainer","taContainer","pollContainer"].forEach(id => {
-      document.getElementById(id).hidden = true;
-    });
-
-    // Show countdown (not for poll)
-    const cWrap = document.getElementById("countdownWrap");
-    if (q.type === "poll") {
-      cWrap.hidden = true;
-    } else {
-      cWrap.hidden = false;
-      startCountdown(q.type === "ta" ? 60 : 30);
-    }
-
-    // Show the right container and populate
-    if (q.type === "mc")   showMC(q);
-    if (q.type === "tf")   showTF(q);
-    if (q.type === "ta")   showTA(q);
-    if (q.type === "poll") showPoll(q);
-  }
-
-  function startCountdown(seconds) {
-    clearInterval(actState.timer);
-    let remaining = seconds;
-    const bar = document.getElementById("countdownBar");
-    const num = document.getElementById("countdownNum");
-
-    function tick() {
-      num.textContent = remaining;
-      bar.style.width = `${(remaining / seconds) * 100}%`;
-      const urgent = remaining <= 8;
-      bar.classList.toggle("urgent", urgent);
-      num.classList.toggle("urgent", urgent);
-      if (remaining <= 0) {
-        clearInterval(actState.timer);
-        if (!actState.answered) timeOut();
-      }
-      remaining--;
-    }
-    tick();
-    actState.timer = setInterval(tick, 1000);
-  }
-
-  function timeOut() {
-    actState.answered = true;
-    actState.streak   = 0;
-    showFeedback("incorrect", "⏱", "Time's up!", "No answer was submitted in time.");
-    document.getElementById("activityNext").hidden = false;
+    // Populate and show MC answers
+    showMC(q);
   }
 
   function showMC(q) {
     const container = document.getElementById("mcContainer");
-    container.hidden = false;
     const letters = ["A","B","C","D"];
     letters.forEach((l, i) => {
       const btn  = container.querySelector(`[data-letter="${l}"]`);
@@ -982,7 +930,6 @@
   function answerMC(chosen, correct, explanation) {
     if (actState.answered) return;
     actState.answered = true;
-    clearInterval(actState.timer);
     const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
     actState.times.push(parseFloat(elapsed));
 
@@ -1003,112 +950,6 @@
       showFeedback("incorrect", "✗", `Incorrect. The answer was ${correct}.`, explanation || "");
     }
     document.getElementById("activityNext").hidden = false;
-  }
-
-  function showTF(q) {
-    const container = document.getElementById("tfContainer");
-    container.hidden = false;
-    container.querySelectorAll(".tf-block").forEach(btn => {
-      btn.classList.remove("selected","correct","incorrect");
-      btn.setAttribute("aria-pressed","false");
-      btn.disabled = false;
-      btn.onclick = () => answerTF(btn.dataset.value, q.correct, q.explanation);
-    });
-  }
-
-  function answerTF(chosen, correct, explanation) {
-    if (actState.answered) return;
-    actState.answered = true;
-    clearInterval(actState.timer);
-    const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
-    actState.times.push(parseFloat(elapsed));
-
-    document.querySelectorAll(".tf-block").forEach(btn => {
-      btn.disabled = true;
-      if (btn.dataset.value === correct) btn.classList.add("correct");
-      else if (btn.dataset.value === chosen) btn.classList.add("incorrect");
-    });
-
-    if (chosen === correct) {
-      actState.score++;
-      actState.streak++;
-      actState.bestStreak = Math.max(actState.bestStreak, actState.streak);
-      showFeedback("correct", "✓", "Correct!", explanation || "");
-    } else {
-      actState.streak = 0;
-      showFeedback("incorrect", "✗", `Incorrect — the statement is ${correct}.`, explanation || "");
-    }
-    document.getElementById("activityNext").hidden = false;
-  }
-
-  function showTA(q) {
-    const container = document.getElementById("taContainer");
-    container.hidden = false;
-    const input = document.getElementById("taInput");
-    input.value = "";
-    input.disabled = false;
-    input.focus();
-    document.getElementById("taSubmit").onclick = () => answerTA(q.correct, q.explanation);
-    input.onkeydown = e => { if (e.key === "Enter") answerTA(q.correct, q.explanation); };
-  }
-
-  function answerTA(correct, explanation) {
-    if (actState.answered) return;
-    const input   = document.getElementById("taInput");
-    const value   = input.value.trim().toLowerCase();
-    const correctL = correct.toLowerCase();
-    actState.answered = true;
-    clearInterval(actState.timer);
-    const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
-    actState.times.push(parseFloat(elapsed));
-    input.disabled = true;
-
-    if (value === correctL || correctL.includes(value) && value.length > 2) {
-      actState.score++;
-      actState.streak++;
-      actState.bestStreak = Math.max(actState.bestStreak, actState.streak);
-      showFeedback("correct", "✓", "Correct!", explanation || "");
-    } else {
-      actState.streak = 0;
-      showFeedback("incorrect", "✗", `The answer was: "${correct}".`, explanation || "");
-    }
-    document.getElementById("activityNext").hidden = false;
-  }
-
-  function showPoll(q) {
-    const container  = document.getElementById("pollContainer");
-    const optionsList = document.getElementById("pollOptions");
-    container.hidden = false;
-    optionsList.innerHTML = q.options.map((opt, i) => `
-      <li class="poll-option" role="option" tabindex="0" aria-selected="false" data-index="${i}">
-        <span>${opt}</span>
-        <span class="poll-radio" aria-hidden="true"></span>
-      </li>
-    `).join("");
-
-    optionsList.querySelectorAll(".poll-option").forEach(li => {
-      li.addEventListener("click", () => {
-        optionsList.querySelectorAll(".poll-option").forEach(o => {
-          o.classList.remove("selected");
-          o.setAttribute("aria-selected","false");
-        });
-        li.classList.add("selected");
-        li.setAttribute("aria-selected","true");
-      });
-      li.addEventListener("keydown", e => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); li.click(); }
-      });
-    });
-
-    document.getElementById("pollSubmit").onclick = () => {
-      if (actState.answered) return;
-      const selected = optionsList.querySelector(".poll-option.selected");
-      if (!selected) { showToast("Please select an option first."); return; }
-      actState.answered = true;
-      optionsList.querySelectorAll(".poll-option").forEach(o => o.style.pointerEvents = "none");
-      showFeedback("neutral", "📊", "Vote recorded — thanks!", "Polls have no right or wrong answer.");
-      document.getElementById("activityNext").hidden = false;
-    };
   }
 
   function showFeedback(type, icon, main, explanation) {
