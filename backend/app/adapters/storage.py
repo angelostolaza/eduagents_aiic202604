@@ -5,6 +5,7 @@ import hashlib
 from functools import lru_cache
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from app.config import get_settings
@@ -20,6 +21,7 @@ class StorageAdapter:
             aws_access_key_id=settings.storage_access_key,
             aws_secret_access_key=settings.storage_secret_key,
             region_name=settings.storage_region,
+            config=Config(connect_timeout=5, retries={"max_attempts": 1}),
         )
         self._public_url_base = getattr(settings, "storage_public_url", "")
 

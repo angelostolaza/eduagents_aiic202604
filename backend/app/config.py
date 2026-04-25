@@ -74,6 +74,12 @@ class Settings(BaseSettings):
     # ── Feature flags ─────────────────────────────────────────────────────────
     scripting_review_gate_enabled: bool = True
 
+    # ── 3D Bust pipeline ──────────────────────────────────────────────────
+    # "triposr" (fast, ~5 s, 3.6 GB VRAM) | "hunyuan3d" (high quality, slow)
+    bust_method: Literal["triposr", "hunyuan3d"] = "triposr"
+    triposr_dir: str = "TripoSR"
+    hunyuan3d_dir: str = "Hunyuan3D-2GP"
+
     # ── Observability ─────────────────────────────────────────────────────────
     otel_exporter_otlp_endpoint: str = ""
     otel_service_name: str = "historylive-backend"

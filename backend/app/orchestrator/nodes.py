@@ -200,6 +200,40 @@ def node_video(state: dict) -> dict:
         return {"error": str(exc), "current_state": "failed"}
 
 
+# ── Bust (parallel 3D pipeline) ───────────────────────────────────────────────
+
+def node_bust(state: dict) -> dict:
+    """Generate a 3D GLB bust for the session's historical figure.
+
+    Runs independently of the main video pipeline. Triggered via the
+    /bust/generate API endpoint which enqueues this node directly.
+    """
+    from app.agents.bust import BustAgent
+
+    session_id = state["session_id"]
+    log.info("node_bust start", extra={"session_id": session_id})
+
+    try:
+        result = _run_sync(BustAgent().run(state))
+        _run_sync(_publish("bust_complete", session_id, {
+            "bust_id": result.get("bust_id", ""),
+            "glb_url": result.get("glb_url", ""),
+            "confidence": "speculative",
+        }))
+        return {
+            "bust_id": result.get("bust_id", ""),
+            "bust_glb_url": result.get("glb_url", ""),
+            "bust_portrait_url": result.get("portrait_url", ""),
+            "bust_method": result.get("method", "triposr"),
+            "current_state": state.get("current_state", ""),
+            "total_cost_cents": state.get("total_cost_cents", 0) + result.get("cost_cents", 0),
+        }
+    except Exception as exc:
+        log.exception("node_bust failed", extra={"session_id": session_id})
+        _run_sync(_publish("bust_failed", session_id, {"error": str(exc)}))
+        return {"error": str(exc)}
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def _publish(event_type: str, session_id: str, data: dict) -> None:

@@ -30,10 +30,10 @@
     const navItems = document.querySelectorAll(".step-item");
 
     panels.forEach(p => p.classList.remove("active"));
-    navItems.forEach((item, idx) => {
+    navItems.forEach((item) => {
       item.classList.remove("active");
-      if (idx + 1 < n)  item.classList.add("done");
-      else               item.classList.remove("done");
+      if (parseInt(item.dataset.step) < n) item.classList.add("done");
+      else                                 item.classList.remove("done");
     });
 
     const targetPanel = document.getElementById(`step${n}`);
@@ -42,7 +42,17 @@
     if (targetNav)   targetNav.classList.add("active");
 
     state.currentStep = n;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Hide hero once the user enters the app flow
+    const hero = document.getElementById("heroSection");
+    if (hero) hero.style.display = "none";
+
+    const appMain = document.getElementById("appMain");
+    if (appMain) {
+      appMain.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
 
   /* ─────────────────────────────────────────
@@ -61,27 +71,7 @@
   /* ─────────────────────────────────────────
      STEP 1 — SPEECH SELECTION
   ───────────────────────────────────────── */
-  function initStep1() {
-    renderSpeechCards(window.SPEECHES_DB);
-
-    const searchInput = document.getElementById("speechSearch");
-    const filterBtns  = document.querySelectorAll(".filter-btn");
-
-    searchInput.addEventListener("input", filterCards);
-    filterBtns.forEach(btn => {
-      btn.addEventListener("click", () => {
-        filterBtns.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filterCards();
-      });
-    });
-
-    document.getElementById("step1Next").addEventListener("click", () => {
-      if (!state.selectedSpeech) return;
-      goToStep(2);
-      startResearchAgent();
-    });
-  }
+  // initStep1 removed — speech selection is now done via the gallery on the hero section
 
   function renderSpeechCards(data) {
     const grid = document.getElementById("speechGrid");
@@ -126,11 +116,9 @@
       card.setAttribute("aria-pressed", "true");
     }
     state.selectedSpeech = window.SPEECHES_DB.find(s => s.id === id) || null;
-
-    const nextBtn = document.getElementById("step1Next");
-    nextBtn.disabled = false;
-    nextBtn.removeAttribute("aria-disabled");
-    showToast(`"${state.selectedSpeech.speech}" selected — ${state.selectedSpeech.figure}`);
+    if (state.selectedSpeech) {
+      showToast(`"${state.selectedSpeech.speech}" selected — ${state.selectedSpeech.figure}`);
+    }
   }
 
   function filterCards() {
@@ -170,34 +158,71 @@
   }
 
   /* ─────────────────────────────────────────
-     STEP 2 — RESEARCH FORM
+     STEP 2 — FIGURE PORTRAIT + VIDEO REQUEST
   ───────────────────────────────────────── */
+
+  // Maps figure names to their gallery portrait images
+  const FIGURE_IMAGES = {
+    "Abraham Lincoln":            "images/Abrahamlincon.png",
+    "John F. Kennedy":            "images/John F. Kennedy.png",
+    "Dr. Martin Luther King Jr.": "images/Dr. Martin Luther King Jr..png",
+    "Hammurabi":                  "images/Hammurabi.png",
+    "Sojourner Truth":            "images/Sojourner Truth's.png",
+    "Malcolm X":                  "images/MalcolmX.png",
+    "Winston Churchill":          "images/Abrahamlincon.png", // fallback
+    "Pericles":                   "images/Hammurabi.png",      // fallback
+    "Nelson Mandela":             "images/MalcolmX.png"        // fallback
+  };
+
   function startResearchAgent() {
     if (!state.selectedSpeech) return;
-    const s  = state.selectedSpeech;
-    const el = id => document.getElementById(id);
+    const s = state.selectedSpeech;
 
-    // Populate speech context banner
-    if (el("scbEmoji"))  el("scbEmoji").textContent  = s.emoji || "🎭";
-    if (el("scbFigure")) el("scbFigure").textContent = s.figure;
-    if (el("scbSpeech")) el("scbSpeech").textContent = s.speech;
-    if (el("scbYear"))   el("scbYear").textContent   = displayYear(s.year);
-    if (el("scbEra"))    el("scbEra").textContent    = eraLabel(s.era);
+    // Populate figure portrait panel
+    const imgEl  = document.getElementById("riFigureImg");
+    const nameEl = document.getElementById("riFigureName");
+    const spEl   = document.getElementById("riSpeechTitle");
+    const metaEl = document.getElementById("riSpeechMeta");
 
-    ResearchAgent.fillForm(s.research);
+    if (imgEl) {
+      imgEl.src = FIGURE_IMAGES[s.figure] || "images/Abrahamlincon.png";
+      imgEl.alt = s.figure;
+    }
+    if (nameEl) nameEl.textContent = s.figure;
+    if (spEl)   spEl.textContent   = s.speech;
+    if (metaEl) metaEl.textContent = `${displayYear(s.year)} · ${eraLabel(s.era)}`;
+
+    // Pre-fill prompt textarea with a sensible default
+    const prompt = document.getElementById("videoPrompt");
+    if (prompt && !prompt.value) {
+      prompt.value = `Cinematic portrayal of ${s.figure} delivering the ${s.speech}, ${displayYear(s.year)}.`;
+    }
+
+    // Keep hidden elements in sync for JS compatibility
+    const scbFigure = document.getElementById("scbFigure");
+    const scbSpeech = document.getElementById("scbSpeech");
+    if (scbFigure) scbFigure.textContent = s.figure;
+    if (scbSpeech) scbSpeech.textContent = s.speech;
   }
 
   function initStep2() {
-    document.getElementById("step2Back").addEventListener("click", () => goToStep(1));
-    document.getElementById("step2Next").addEventListener("click", () => {
-      collectResearchData();
-      goToStep(3);
-      generateSeedImage();
+    document.getElementById("step2Back").addEventListener("click", () => {
+      resetToStep1();
     });
 
-    // Setting toggle
-    document.getElementById("settingType").addEventListener("change", function () {
-      ResearchAgent.toggleIndoorFields(this.value === "indoor");
+    document.getElementById("step2Next").addEventListener("click", () => {
+      const prompt = document.getElementById("videoPrompt");
+      state.videoPrompt = prompt ? prompt.value.trim() : "";
+      goToStep(5);
+      generateSeedImage(); // reuse existing video-generation pipeline
+    });
+
+    // Quick-start chips fill the textarea
+    document.querySelectorAll(".ri-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const prompt = document.getElementById("videoPrompt");
+        if (prompt) prompt.value = chip.dataset.prompt || chip.textContent.trim();
+      });
     });
   }
 
@@ -548,7 +573,7 @@
      STEP 5 — VIDEO OUTPUT
   ───────────────────────────────────────── */
   function initStep5() {
-    document.getElementById("step5Back").addEventListener("click", () => goToStep(4));
+    document.getElementById("step5Back").addEventListener("click", () => goToStep(2));
     document.getElementById("step5Next").addEventListener("click", () => {
       goToStep(6);
       startActivity();
@@ -781,17 +806,19 @@
     state.scenes          = [];
     state.activityScore   = { correct: 0, streak: 0, best: 0, times: [] };
 
-    document.querySelectorAll(".speech-card").forEach(c => c.classList.remove("selected"));
-    const nextBtn = document.getElementById("step1Next");
-    nextBtn.disabled = true;
-    nextBtn.setAttribute("aria-disabled", "true");
+    // Hide all step panels and nav states
+    document.querySelectorAll(".step-panel").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".step-item").forEach(item => item.classList.remove("active", "done"));
+
+    // Show the hero/gallery again
+    const hero = document.getElementById("heroSection");
+    if (hero) hero.style.display = "";
 
     const loadingEl = document.getElementById("seedLoading");
     const imgEl     = document.getElementById("seedImage");
     if (loadingEl) loadingEl.classList.remove("hidden");
     if (imgEl)     imgEl.classList.add("hidden");
 
-    goToStep(1);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1230,7 +1257,6 @@
      INIT
   ───────────────────────────────────────── */
   document.addEventListener("DOMContentLoaded", () => {
-    initStep1();
     initStep2();
     initStep3();
     initStep4();
@@ -1241,7 +1267,15 @@
     initDemoMode();
     initHeroCanvas();
     initScrollReveal();
-    goToStep(1);
+    // No goToStep call — hero is visible by default; flow starts when gallery image is clicked
+
+    // Expose for gallery image click-to-research
+    window.__appSelectAndResearch = function (speechId) {
+      if (!window.SPEECHES_DB.find(s => s.id === speechId)) return;
+      selectSpeech(speechId);
+      goToStep(2);
+      startResearchAgent();
+    };
   });
 
 })();

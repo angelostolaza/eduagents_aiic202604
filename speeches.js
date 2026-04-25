@@ -1,6 +1,11 @@
 /**
  * speeches.js — Curated historical speech database
  * Each entry contains all data needed to auto-fill the research form.
+ *
+ * bustGlbUrl: path/URL to a pre-generated GLB bust (from BustAgent).
+ *   Set to a real URL after running `POST /api/v1/sessions/{id}/bust/generate`
+ *   for each figure. null = "Generate 3D Bust" button shown instead.
+ * bustPhysicalDescription: fed to the portrait prompt in BustAgent.
  */
 
 window.SPEECHES_DB = [
@@ -8,6 +13,8 @@ window.SPEECHES_DB = [
     id: "gettysburg-1863",
     figure: "Abraham Lincoln",
     speech: "Gettysburg Address",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "tall, bearded, frock coat, stovepipe hat, gaunt but dignified features",
     era: "modern",
     year: 1863,
     emoji: "🎩",
@@ -43,6 +50,8 @@ window.SPEECHES_DB = [
     id: "ihaveadream-1963",
     figure: "Dr. Martin Luther King Jr.",
     speech: "I Have a Dream",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "dark suit, white dress shirt, dark tie, 1963, dignified and powerful bearing",
     era: "contemporary",
     year: 1963,
     emoji: "✊",
@@ -78,6 +87,8 @@ window.SPEECHES_DB = [
     id: "hammurabi-code",
     figure: "Hammurabi",
     speech: "Prologue to the Code of Hammurabi",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "Babylonian king, tall horned crown, long black beard, royal robes, rod-and-ring symbol",
     era: "ancient",
     year: -1754,
     emoji: "⚖️",
@@ -113,6 +124,8 @@ window.SPEECHES_DB = [
     id: "sojourner-truth-1851",
     figure: "Sojourner Truth",
     speech: "Ain't I a Woman?",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "tall commanding presence, plain grey Quaker-style dress, white cap, 1851",
     era: "modern",
     year: 1851,
     emoji: "🌟",
@@ -148,6 +161,8 @@ window.SPEECHES_DB = [
     id: "winston-churchill-finest-hour",
     figure: "Winston Churchill",
     speech: "Their Finest Hour",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "stocky, dark three-piece suit, white pocket square, bow tie, stern wartime expression, 1940",
     era: "modern",
     year: 1940,
     emoji: "🎖️",
@@ -183,6 +198,8 @@ window.SPEECHES_DB = [
     id: "pericles-funeral-oration",
     figure: "Pericles",
     speech: "Funeral Oration",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "Classical Athenian general, white chiton, olive wreath, strong jaw, bearded, commanding presence",
     era: "ancient",
     year: -431,
     emoji: "🏛️",
@@ -218,6 +235,8 @@ window.SPEECHES_DB = [
     id: "jfk-moon-speech",
     figure: "John F. Kennedy",
     speech: "We Choose to Go to the Moon",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "dark suit, white shirt, dark tie, youthful tanned face, 1962, charismatic",
     era: "contemporary",
     year: 1962,
     emoji: "🚀",
@@ -253,6 +272,8 @@ window.SPEECHES_DB = [
     id: "nelson-mandela-release",
     figure: "Nelson Mandela",
     speech: "Release from Prison Speech",
+    bustGlbUrl: null,
+    bustPhysicalDescription: "dark suit, white shirt, tie, dignified grey-haired elder, fist raised, 1990",
     era: "contemporary",
     year: 1990,
     emoji: "✌️",

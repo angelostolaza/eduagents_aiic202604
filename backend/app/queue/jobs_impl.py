@@ -16,7 +16,7 @@ async def run_agent_for_session(
 ) -> None:
     from app.agents import (
         ResearchAgent, ScriptingAgent, SeedImageAgent,
-        StoryboardAgent, VoiceAgent, VideoAgent,
+        StoryboardAgent, VoiceAgent, VideoAgent, BustAgent,
     )
 
     _AGENTS = {
@@ -26,6 +26,7 @@ async def run_agent_for_session(
         "storyboard": StoryboardAgent,
         "voice": VoiceAgent,
         "video": VideoAgent,
+        "bust": BustAgent,
     }
 
     AgentClass = _AGENTS.get(agent_name)

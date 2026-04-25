@@ -9,6 +9,7 @@ from app.models.voice import VoiceTrack
 from app.models.video import VideoRender
 from app.models.audit import AgentRun
 from app.models.moderation import ContentModerationLog
+from app.models.bust import BustAsset
 
 __all__ = [
     "Base",
@@ -25,4 +26,5 @@ __all__ = [
     "VideoRender",
     "AgentRun",
     "ContentModerationLog",
+    "BustAsset",
 ]

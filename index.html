@@ -1,36 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HistoryLive — History, As If You Were There</title>
+  <title>VozEra</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="VozEra%20Logo/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="VozEra%20Logo/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="VozEra%20Logo/favicon-48x48.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="VozEra%20Logo/apple-touch-icon-180x180.png" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
 </head>
+
 <body>
 
   <!-- HEADER -->
   <header class="site-header" role="banner">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">🎬</span>
-        <span class="logo-text">History<strong>Live</strong></span>
+        <img src="VozEra%20Logo/slides-logo-256x256.png" alt="VozEra" class="logo-img" />
       </div>
       <button class="btn-demo" id="demoModeBtn" aria-label="Launch guided demo walkthrough">
         <span class="btn-demo-dot" aria-hidden="true"></span>
-        Demo Mode
+        VozEra
       </button>
       <nav class="step-nav" aria-label="Progress steps">
         <ol class="step-list" id="stepList">
-          <li class="step-item active" data-step="1"><span class="step-num">1</span><span class="step-label">Speech</span></li>
-          <li class="step-item" data-step="2"><span class="step-num">2</span><span class="step-label">Research</span></li>
-          <li class="step-item" data-step="3"><span class="step-num">3</span><span class="step-label">Seed Image</span></li>
-          <li class="step-item" data-step="4"><span class="step-num">4</span><span class="step-label">Storyboard</span></li>
-          <li class="step-item" data-step="5"><span class="step-num">5</span><span class="step-label">Video</span></li>
-          <li class="step-item" data-step="6"><span class="step-num">6</span><span class="step-label">Activity</span></li>
-          <li class="step-item" data-step="7"><span class="step-num">7</span><span class="step-label">Summary</span></li>
+          <li class="step-item" data-step="2"><span class="step-num">1</span><span class="step-label">Research</span></li>
+          <li class="step-item" data-step="5"><span class="step-num">2</span><span class="step-label">Video</span></li>
+          <li class="step-item" data-step="6"><span class="step-num">3</span><span class="step-label">Activity</span></li>
+          <li class="step-item" data-step="7"><span class="step-num">4</span><span class="step-label">Summary</span></li>
         </ol>
       </nav>
     </div>
@@ -40,13 +44,68 @@
   <section class="hero" id="heroSection" role="region" aria-label="App introduction">
     <canvas id="heroCanvas" class="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-film-bars" aria-hidden="true"><span></span><span></span></div>
+    <div class="hero-video-showcase">
+      <video class="hero-showcase-video" id="heroShowcaseVideo" autoplay muted loop playsinline>
+        <source src="video/Untitled%20video.mp4" type="video/mp4" />
+      </video>
+      <button class="video-play-btn" id="videoPlayBtn" aria-label="Pause video">
+        <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="5,3 19,12 5,21" />
+        </svg>
+        <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="5" y="3" width="4" height="18" />
+          <rect x="15" y="3" width="4" height="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- IMAGE GALLERY -->
+    <div class="gallery-section">
+      <h2 class="gallery-heading">Historical Figures</h2>
+      <div class="gallery-row">
+        <button class="gallery-arrow gallery-arrow--left" id="galleryPrev" aria-label="Previous figure">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <polyline points="15,18 9,12 15,6" />
+          </svg>
+        </button>
+        <div class="gallery-spotlight" id="gallerySpotlight">
+          <div class="gspot-item" data-idx="0" data-figure="Abraham Lincoln">
+            <img src="images/Abrahamlincon.png" alt="Abraham Lincoln" loading="lazy" />
+          </div>
+          <div class="gspot-item" data-idx="1" data-figure="John F. Kennedy">
+            <img src="images/John F. Kennedy.png" alt="John F. Kennedy" loading="lazy" />
+          </div>
+          <div class="gspot-item" data-idx="2" data-figure="Dr. Martin Luther King Jr.">
+            <img src="images/Dr. Martin Luther King Jr..png" alt="Dr. Martin Luther King Jr." loading="lazy" />
+          </div>
+          <div class="gspot-item" data-idx="3" data-figure="Hammurabi">
+            <img src="images/Hammurabi.png" alt="Hammurabi" loading="lazy" />
+          </div>
+          <div class="gspot-item" data-idx="4" data-figure="Sojourner Truth">
+            <img src="images/Sojourner Truth's.png" alt="Sojourner Truth" loading="lazy" />
+          </div>
+          <div class="gspot-item" data-idx="5" data-figure="Malcolm X">
+            <img src="images/MalcolmX.png" alt="Malcolm X" loading="lazy" />
+          </div>
+        </div>
+        <button class="gallery-arrow gallery-arrow--right" id="galleryNext" aria-label="Next figure">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <polyline points="9,18 15,12 9,6" />
+          </svg>
+        </button>
+      </div>
+      <p class="gallery-caption" id="galleryCaption">Abraham Lincoln</p>
+      <p class="gallery-click-hint" id="galleryClickHint">Click to Research &rarr;</p>
+    </div>
+
     <div class="hero-content">
       <p class="hero-eyebrow">
         <span class="eyebrow-live" aria-hidden="true"></span>
         AI-Powered Historical Video Generation
       </p>
       <h1 class="hero-title">History,<br /><em>As If You Were There.</em></h1>
-      <p class="hero-sub">Pick a speech. Our AI researches the historical context, builds a seed image you approve, and generates a cinematic video of that figure delivering it — period accurate, immersive, unforgettable.</p>
+      <p class="hero-sub">Pick a speech. Our AI researches the historical context, builds a seed image you approve, and
+        generates a cinematic video of that figure delivering it — period accurate, immersive, unforgettable.</p>
       <div class="hero-cta-row">
         <a href="#appMain" class="btn btn-primary btn-glow" id="heroStartBtn">&#9654;&nbsp; Start Your Experience</a>
         <button class="btn btn-outline-gold" id="heroDemoBtn">&#9711;&nbsp; Watch Demo</button>
@@ -81,41 +140,47 @@
     <div class="how-inner">
       <p class="section-eyebrow">The 5-Step Process</p>
       <h2 id="howTitle" class="section-heading">From Speech to Screen</h2>
-      <p class="section-sub">Our AI pipeline transforms any historical speech into an immersive cinematic experience — five steps, minutes to complete.</p>
+      <p class="section-sub">Our AI pipeline transforms any historical speech into an immersive cinematic experience —
+        five steps, minutes to complete.</p>
       <div class="how-steps">
         <div class="how-step reveal">
           <div class="how-step-icon" aria-hidden="true">🎭</div>
           <div class="how-step-num" aria-hidden="true">01</div>
           <h3 class="how-step-title">Select a Speech</h3>
-          <p class="how-step-desc">Browse 8+ curated speeches spanning 2,700 years — filter by era, figure, or keyword.</p>
+          <p class="how-step-desc">Browse 8+ curated speeches spanning 2,700 years — filter by era, figure, or keyword.
+          </p>
         </div>
         <div class="how-connector" aria-hidden="true"></div>
         <div class="how-step reveal">
           <div class="how-step-icon" aria-hidden="true">🔬</div>
           <div class="how-step-num" aria-hidden="true">02</div>
           <h3 class="how-step-title">AI Research Agent</h3>
-          <p class="how-step-desc">Agent auto-fills 20+ historical details — venue, dialect, attire, audience layout, and accuracy rules.</p>
+          <p class="how-step-desc">Agent auto-fills 20+ historical details — venue, dialect, attire, audience layout,
+            and accuracy rules.</p>
         </div>
         <div class="how-connector" aria-hidden="true"></div>
         <div class="how-step reveal">
           <div class="how-step-icon" aria-hidden="true">🖼️</div>
           <div class="how-step-num" aria-hidden="true">03</div>
           <h3 class="how-step-title">Seed Image Approval</h3>
-          <p class="how-step-desc">Review and revise the visual direction before any video is produced. You stay in creative control.</p>
+          <p class="how-step-desc">Review and revise the visual direction before any video is produced. You stay in
+            creative control.</p>
         </div>
         <div class="how-connector" aria-hidden="true"></div>
         <div class="how-step reveal">
           <div class="how-step-icon" aria-hidden="true">🎞️</div>
           <div class="how-step-num" aria-hidden="true">04</div>
           <h3 class="how-step-title">Storyboard</h3>
-          <p class="how-step-desc">Storyboard agent generates 9 director-quality shots. Drag to reorder before the final render.</p>
+          <p class="how-step-desc">Storyboard agent generates 9 director-quality shots. Drag to reorder before the final
+            render.</p>
         </div>
         <div class="how-connector" aria-hidden="true"></div>
         <div class="how-step reveal">
           <div class="how-step-icon" aria-hidden="true">🎬</div>
           <div class="how-step-num" aria-hidden="true">05</div>
           <h3 class="how-step-title">Cinematic Video</h3>
-          <p class="how-step-desc">Your video renders with chosen aspect ratio, colour grade, camera perspective, and accuracy tier.</p>
+          <p class="how-step-desc">Your video renders with chosen aspect ratio, colour grade, camera perspective, and
+            accuracy tier.</p>
         </div>
       </div>
     </div>
@@ -124,47 +189,85 @@
   <!-- MAIN APP -->
   <main class="app-main" id="appMain" role="main">
 
-    <!-- ================================ STEP 1: SPEECH SELECTOR ================================ -->
-    <section class="step-panel active" id="step1" aria-labelledby="step1Title">
-      <div class="panel-header">
-        <h2 id="step1Title" class="panel-title">Select a Historical Speech</h2>
-        <p class="panel-sub">Choose from our curated library or search by figure, year, or keyword.</p>
-      </div>
+    <!-- ================================ STEP 2: RESEARCH / FIGURE ================================ -->
+    <section class="step-panel" id="step2" aria-labelledby="step2Title">
+      <h2 id="step2Title" class="sr-only">Historical Figure</h2>
 
-      <div class="search-bar-wrap">
-        <label for="speechSearch" class="sr-only">Search speeches</label>
-        <input type="search" id="speechSearch" class="search-bar" placeholder="🔍  Search by name, speech, year…" autocomplete="off" aria-label="Search speeches" />
-      </div>
+      <div class="ri-layout">
 
-      <div class="filter-row" role="group" aria-label="Filter by era">
-        <button class="filter-btn active" data-filter="all">All Eras</button>
-        <button class="filter-btn" data-filter="ancient">Ancient</button>
-        <button class="filter-btn" data-filter="medieval">Medieval</button>
-        <button class="filter-btn" data-filter="modern-early">Early Modern</button>
-        <button class="filter-btn" data-filter="modern">Modern</button>
-        <button class="filter-btn" data-filter="contemporary">Contemporary</button>
-      </div>
+        <!-- LEFT: Portrait -->
+        <div class="ri-left">
+          <div class="ri-logo-wrap">
+            <img src="VozEra%20Logo/slides-logo-256x256.png" alt="VozEra" class="ri-logo" />
+            <span class="ri-logo-text">VozEra</span>
+          </div>
+          <div class="ri-portrait-wrap">
+            <img id="riFigureImg" src="images/Abrahamlincon.png" alt="" class="ri-portrait" />
+          </div>
+          <div class="ri-figure-info">
+            <h3 id="riFigureName" class="ri-name">Abraham Lincoln</h3>
+            <p id="riSpeechTitle" class="ri-speech">Gettysburg Address</p>
+            <p id="riSpeechMeta" class="ri-meta"></p>
+          </div>
+        </div>
 
-      <div class="speech-grid" id="speechGrid" role="list" aria-label="Available speeches">
-        <!-- Cards injected by speeches.js -->
-      </div>
+        <!-- MIDDLE: Video request -->
+        <div class="ri-right">
+          <div class="ri-right-hd">
+            <h3 class="ri-right-title">Create Your Historical Video</h3>
+            <p class="ri-right-sub">Describe the cinematic style you want. Our AI will generate your video based on verified historical research.</p>
+          </div>
 
-      <div class="step-actions">
-        <button class="btn btn-primary" id="step1Next" disabled aria-disabled="true">
-          Continue to Research <span aria-hidden="true">→</span>
-        </button>
+          <label for="videoPrompt" class="ri-prompt-label">Your video request</label>
+          <textarea id="videoPrompt" class="ri-prompt" rows="5"
+            placeholder="e.g. Close-up of Lincoln at the podium, overcast sky, solemn crowd in the background, documentary black-and-white film grain style…"></textarea>
+
+          <div class="ri-chips-row">
+            <span class="ri-chips-label">Quick starts:</span>
+            <button class="ri-chip" type="button" data-prompt="Wide establishing shot, sweeping cinematic view of the crowd and venue">Wide establishing shot</button>
+            <button class="ri-chip" type="button" data-prompt="Close-up portrait style, tight on the speaker's face, dramatic lighting">Close-up portrait</button>
+            <button class="ri-chip" type="button" data-prompt="Documentary footage feel, hand-held camera, authentic period colour">Documentary feel</button>
+            <button class="ri-chip" type="button" data-prompt="Cinematic black and white, film grain, high contrast shadows">Black &amp; white cinematic</button>
+          </div>
+
+          <div class="step-actions">
+            <button class="btn btn-secondary" id="step2Back">&larr; Back</button>
+            <button class="btn btn-primary btn-glow" id="step2Next">Generate Video <span aria-hidden="true">&rarr;</span></button>
+          </div>
+        </div>
+
+        <!-- RIGHT: Sample videos carousel -->
+        <div class="ri-videos">
+          <p class="ri-videos-label">Sample Videos</p>
+          <button class="rv-arrow rv-arrow--up" id="rvPrev" aria-label="Previous video">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polyline points="18,15 12,9 6,15"/></svg>
+          </button>
+          <div class="rv-spotlight" id="rvSpotlight">
+            <div class="rv-item rv-active" data-title="Gettysburg Address" data-fig="Abraham Lincoln">
+              <video class="rv-video" autoplay muted loop playsinline>
+                <source src="video/gettysburg%20address.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div class="rv-item" data-title="Featured Speech" data-fig="VozEra Demo">
+              <video class="rv-video" muted loop playsinline>
+                <source src="video/Untitled%20video.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+          <button class="rv-arrow rv-arrow--down" id="rvNext" aria-label="Next video">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polyline points="6,9 12,15 18,9"/></svg>
+          </button>
+          <div class="rv-caption">
+            <span class="rv-cap-title" id="rvCapTitle">Gettysburg Address</span>
+            <span class="rv-cap-fig" id="rvCapFig">Abraham Lincoln</span>
+          </div>
+        </div>
+
       </div>
     </section>
 
-    <!-- ================================ STEP 2: RESEARCH FORM ================================ -->
-    <section class="step-panel" id="step2" aria-labelledby="step2Title">
-      <div class="panel-header">
-        <h2 id="step2Title" class="panel-title">Historical Research Form</h2>
-        <p class="panel-sub">Our AI agent has pre-filled this form from historical archives. Review and adjust any details before continuing.</p>
-      </div>
-
-      <!-- Speech Context Banner -->
-      <div class="speech-context-banner" id="speechContextBanner">
+      <!-- OLD RESEARCH FORM REMOVED -->
+      <div class="speech-context-banner" id="speechContextBanner" style="display:none">
         <div class="scb-left">
           <span class="scb-emoji" id="scbEmoji">🎭</span>
           <div class="scb-info">
@@ -179,276 +282,20 @@
         </div>
       </div>
 
-      <!-- Agent Status Bar -->
-      <div class="agent-status-bar" id="agentBadge" aria-live="polite" role="status">
-        <div class="asb-left">
-          <span class="agent-dot"></span>
-          <span class="asb-label" id="agentStatus">Research Agent — Analysing historical records…</span>
-        </div>
-        <div class="asb-right">
-          <span class="asb-pct" id="agentPct">0%</span>
-          <div class="asb-progress" aria-hidden="true"><div class="asb-fill" id="agentProgressBar" style="width:0%"></div></div>
-        </div>
+      <!-- Hidden elements kept for JS compatibility -->
+      <div style="display:none">
+        <div id="agentBadge"><span id="agentStatus"></span><span id="agentPct"></span><div id="agentProgressBar"></div></div>
+        <div id="researchForm"><select id="settingType"></select></div>
+        <div id="agentLog"></div>
+        <span id="agentFieldsDone"></span><div id="confBar"></div><span id="confPct"></span>
       </div>
-
-      <!-- Research layout: form col + live agent feed -->
-      <div class="research-layout">
-        <div class="research-form-col">
-          <form id="researchForm" class="research-form" novalidate aria-label="Historical research details">
-
-        <!-- SPEAKER -->
-        <fieldset class="form-section">
-          <legend class="section-legend"><span class="sl-badge" aria-hidden="true">01</span><span class="sl-icon" aria-hidden="true">🎤</span> Speaker Identity</legend>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speakerName">Who is speaking?</label>
-              <input type="text" id="speakerName" name="speakerName" class="form-input" placeholder="e.g. Abraham Lincoln" required />
-            </div>
-            <div class="form-group">
-              <label for="speechTitle">Which speech?</label>
-              <input type="text" id="speechTitle" name="speechTitle" class="form-input" placeholder="e.g. Gettysburg Address" required />
-            </div>
-          </div>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speechVersion">Version of the speech</label>
-              <select id="speechVersion" name="speechVersion" class="form-select">
-                <option value="primary">Primary / most known version</option>
-                <option value="draft">Draft / earlier version</option>
-                <option value="alternate">Alternate delivery (different event)</option>
-                <option value="written">Written-only transcription</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="speechVariations">Variations from other versions?</label>
-              <textarea id="speechVariations" name="speechVariations" class="form-textarea" rows="2" placeholder="e.g. Added final paragraph, slower delivery"></textarea>
-            </div>
-          </div>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speechLanguage">Language spoken</label>
-              <input type="text" id="speechLanguage" name="speechLanguage" class="form-input" placeholder="e.g. English" />
-            </div>
-            <div class="form-group">
-              <label for="speechDialect">Dialect / accent</label>
-              <textarea id="speechDialect" name="speechDialect" class="form-textarea" rows="2" placeholder="e.g. 19th-century American English, Illinois accent"></textarea>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="speechTranscript">Transcript / source text available?</label>
-              <textarea id="speechTranscript" name="speechTranscript" class="form-textarea" rows="8" placeholder="Paste known transcript, archive reference, or link…"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- LOCATION -->
-        <fieldset class="form-section">
-          <legend class="section-legend"><span class="sl-badge" aria-hidden="true">02</span><span class="sl-icon" aria-hidden="true">📍</span> Location &amp; Venue</legend>
-          <div class="form-row three-col">
-            <div class="form-group">
-              <label for="locationCity">City</label>
-              <input type="text" id="locationCity" name="locationCity" class="form-input" placeholder="e.g. Gettysburg" />
-            </div>
-            <div class="form-group">
-              <label for="locationState">State / Province</label>
-              <input type="text" id="locationState" name="locationState" class="form-input" placeholder="e.g. Pennsylvania" />
-            </div>
-            <div class="form-group">
-              <label for="locationCountry">Country</label>
-              <input type="text" id="locationCountry" name="locationCountry" class="form-input" placeholder="e.g. United States" />
-            </div>
-          </div>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speechDate">Date (approximate is fine)</label>
-              <input type="text" id="speechDate" name="speechDate" class="form-input" placeholder="e.g. November 19, 1863" />
-            </div>
-            <div class="form-group">
-              <label for="timePeriod">Historical era / time period</label>
-              <input type="text" id="timePeriod" name="timePeriod" class="form-input" placeholder="e.g. American Civil War, 1860s" />
-            </div>
-          </div>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="settingType">Indoor or outdoor?</label>
-              <select id="settingType" name="settingType" class="form-select">
-                <option value="outdoor">Outdoor</option>
-                <option value="indoor">Indoor</option>
-              </select>
-            </div>
-            <div class="form-group" id="buildingGroup">
-              <label for="buildingName">Building name (if indoor)</label>
-              <textarea id="buildingName" name="buildingName" class="form-textarea" rows="2" placeholder="e.g. House of Commons, Westminster"></textarea>
-            </div>
-          </div>
-          <div class="form-row two-col" id="roomGroup">
-            <div class="form-group">
-              <label for="roomType">Room / space type</label>
-              <select id="roomType" name="roomType" class="form-select">
-                <option value="">— select —</option>
-                <option value="hall">Great Hall</option>
-                <option value="auditorium">Auditorium</option>
-                <option value="chamber">Legislative Chamber</option>
-                <option value="church">Church / Cathedral</option>
-                <option value="courtroom">Courtroom</option>
-                <option value="ballroom">Ballroom / Banquet Hall</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="roomNotes">Room description notes</label>
-              <textarea id="roomNotes" name="roomNotes" class="form-textarea" rows="2" placeholder="e.g. vaulted ceiling, stone walls, torchlit"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- AUDIENCE -->
-        <fieldset class="form-section">
-          <legend class="section-legend"><span class="sl-badge" aria-hidden="true">03</span><span class="sl-icon" aria-hidden="true">👥</span> Audience Setup</legend>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="audienceType">Audience arrangement</label>
-              <select id="audienceType" name="audienceType" class="form-select">
-                <option value="built-in">Built-in seating (auditorium style)</option>
-                <option value="chairs">Chairs set up in room / field</option>
-                <option value="standing">Standing crowd</option>
-                <option value="mixed">Mixed (seated + standing)</option>
-                <option value="none">No audience visible</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="audienceSize">Approximate audience size</label>
-              <input type="text" id="audienceSize" name="audienceSize" class="form-input" placeholder="e.g. ~15,000 attendees" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="audienceNotes">Audience notes (dress, mood, demographics)</label>
-              <textarea id="audienceNotes" name="audienceNotes" class="form-textarea" rows="2" placeholder="e.g. Union soldiers, civilians in mourning dress, overcast day"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- SPEAKER SETUP -->
-        <fieldset class="form-section">
-          <legend class="section-legend"><span class="sl-badge" aria-hidden="true">04</span><span class="sl-icon" aria-hidden="true">🎭</span> Speaker Staging</legend>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speakerPosition">How is the speaker positioned?</label>
-              <select id="speakerPosition" name="speakerPosition" class="form-select">
-                <option value="podium">Standing at a podium</option>
-                <option value="walking">Walking on stage</option>
-                <option value="seated-chair">Seated at a chair</option>
-                <option value="seated-table">Seated at a table</option>
-                <option value="seated-stool">Seated on a stool</option>
-                <option value="elevated">Standing on elevated platform</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="micType">Audio delivery method</label>
-              <select id="micType" name="micType" class="form-select">
-                <option value="none">Natural projection (no mic)</option>
-                <option value="ribbon">Ribbon microphone (1920s–40s style)</option>
-                <option value="dynamic">Dynamic microphone (1940s+ style)</option>
-                <option value="condenser">Condenser mic (1960s+ style)</option>
-                <option value="lectern">Lectern-mounted mic</option>
-                <option value="handheld">Handheld mic</option>
-                <option value="lavalier">Lavalier / clip-on mic (1970s+)</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row two-col">
-            <div class="form-group">
-              <label for="speakerAttire">Period attire notes</label>
-              <textarea id="speakerAttire" name="speakerAttire" class="form-textarea" rows="2" placeholder="e.g. frock coat, stovepipe hat, black mourning suit"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="speakerNotes">Other staging notes</label>
-              <textarea id="speakerNotes" name="speakerNotes" class="form-textarea" rows="2" placeholder="e.g. held papers, gestured broadly, solemn tone"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <!-- PERIOD ACCURACY -->
-        <fieldset class="form-section">
-          <legend class="section-legend"><span class="sl-badge" aria-hidden="true">05</span><span class="sl-icon" aria-hidden="true">🏛️</span> Period Accuracy &amp; Constraints</legend>
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="accuracyTier">Accuracy tier</label>
-              <div class="tier-selector" role="radiogroup" aria-label="Accuracy tier">
-                <label class="tier-card" tabindex="0">
-                  <input type="radio" name="accuracyTier" value="1" class="sr-only" />
-                  <span class="tier-num">Tier 1</span>
-                  <span class="tier-name">Essential</span>
-                  <span class="tier-desc">Correct setting, speaker appearance, era-appropriate costume. Great for general audiences.</span>
-                </label>
-                <label class="tier-card" tabindex="0">
-                  <input type="radio" name="accuracyTier" value="2" class="sr-only" checked />
-                  <span class="tier-num">Tier 2</span>
-                  <span class="tier-name">Context-Rich</span>
-                  <span class="tier-desc">Adds correct microphone, audience layout, building detail, and lighting conditions.</span>
-                </label>
-                <label class="tier-card" tabindex="0">
-                  <input type="radio" name="accuracyTier" value="3" class="sr-only" />
-                  <span class="tier-num">Tier 3</span>
-                  <span class="tier-name">Archival-Grade</span>
-                  <span class="tier-desc">Down to specific mic model, period newspaper reports, crowd dress codes, verified transcripts.</span>
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group full-width">
-              <label for="accuracyNotes">Accuracy constraints / known anachronisms to avoid</label>
-              <textarea id="accuracyNotes" name="accuracyNotes" class="form-textarea" rows="4" placeholder="e.g. No electric lighting — event was daytime outdoor. No amplification. Flags should be 35-star US flag."></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-          </form>
-        </div><!-- /research-form-col -->
-
-        <!-- AI Research Agent Live Feed -->
-        <aside class="agent-feed" aria-label="AI Research Agent live feed">
-          <div class="agent-feed-hd">
-            <span class="af-icon" aria-hidden="true">🤖</span>
-            <div>
-              <div class="af-title">AI Research Feed</div>
-              <div class="af-sub">Filling 24 fields from archives</div>
-            </div>
-          </div>
-          <ul class="agent-log" id="agentLog" aria-live="polite" aria-atomic="false">
-            <li class="agent-log-item agent-log-waiting">
-              <span class="alg-icon" aria-hidden="true">⏳</span>
-              <span class="alg-text">Agent initialising…</span>
-            </li>
-          </ul>
-          <div class="af-footer">
-            <div class="af-fields-count">
-              <span class="afc-num" id="agentFieldsDone">0</span>
-              <span class="afc-label">/ 24 fields filled</span>
-            </div>
-            <div class="af-confidence">
-              <span class="afc-conf-label">Confidence</span>
-              <div class="conf-bar-wrap" aria-hidden="true"><div class="conf-bar" id="confBar" style="width:0%"></div></div>
-              <span class="afc-pct" id="confPct">0%</span>
-            </div>
-          </div>
-        </aside>
-      </div><!-- /research-layout -->
-
-      <div class="step-actions">
-        <button class="btn btn-secondary" id="step2Back">← Back</button>
-        <button class="btn btn-primary" id="step2Next">Generate Seed Image <span aria-hidden="true">→</span></button>
-      </div>
-    </section>
 
     <!-- ================================ STEP 3: SEED IMAGE ================================ -->
     <section class="step-panel" id="step3" aria-labelledby="step3Title">
       <div class="panel-header">
         <h2 id="step3Title" class="panel-title">Seed Image Approval</h2>
-        <p class="panel-sub">Review the AI-generated seed image. This sets the visual style for your entire video. Approve it or request revisions before storyboarding begins.</p>
+        <p class="panel-sub">Review the AI-generated seed image. This sets the visual style for your entire video.
+          Approve it or request revisions before storyboarding begins.</p>
       </div>
 
       <div class="seed-layout">
@@ -469,7 +316,8 @@
           <div class="control-group">
             <label class="control-label">Aspect Ratio</label>
             <div class="toggle-group" role="radiogroup" aria-label="Aspect ratio">
-              <button class="toggle-btn active" data-value="16:9" role="radio" aria-checked="true">16:9 Landscape</button>
+              <button class="toggle-btn active" data-value="16:9" role="radio" aria-checked="true">16:9
+                Landscape</button>
               <button class="toggle-btn" data-value="9:16" role="radio" aria-checked="false">9:16 Portrait</button>
             </div>
           </div>
@@ -477,8 +325,10 @@
           <div class="control-group">
             <label class="control-label">Color Grading</label>
             <div class="toggle-group" role="radiogroup" aria-label="Color grading">
-              <button class="toggle-btn active" data-value="cinematic" role="radio" aria-checked="true">🎬 Cinematic</button>
-              <button class="toggle-btn" data-value="documentary" role="radio" aria-checked="false">📽 Documentary</button>
+              <button class="toggle-btn active" data-value="cinematic" role="radio" aria-checked="true">🎬
+                Cinematic</button>
+              <button class="toggle-btn" data-value="documentary" role="radio" aria-checked="false">📽
+                Documentary</button>
               <button class="toggle-btn" data-value="neutral" role="radio" aria-checked="false">⚪ Neutral</button>
             </div>
           </div>
@@ -486,14 +336,17 @@
           <div class="control-group">
             <label class="control-label">Camera Perspective</label>
             <div class="toggle-group" role="radiogroup" aria-label="Camera perspective">
-              <button class="toggle-btn active" data-value="audience-pov" role="radio" aria-checked="true">👥 Audience POV</button>
-              <button class="toggle-btn" data-value="multi-shot" role="radio" aria-checked="false">🎥 Multi-Shot Cinematic</button>
+              <button class="toggle-btn active" data-value="audience-pov" role="radio" aria-checked="true">👥 Audience
+                POV</button>
+              <button class="toggle-btn" data-value="multi-shot" role="radio" aria-checked="false">🎥 Multi-Shot
+                Cinematic</button>
             </div>
           </div>
 
           <div class="control-group">
             <label class="control-label" for="revisionNotes">Revision Notes</label>
-            <textarea id="revisionNotes" class="form-textarea" rows="4" placeholder="e.g. Make the lighting darker and more atmospheric. Add crowd in background. Change coat color to dark grey."></textarea>
+            <textarea id="revisionNotes" class="form-textarea" rows="4"
+              placeholder="e.g. Make the lighting darker and more atmospheric. Add crowd in background. Change coat color to dark grey."></textarea>
           </div>
 
           <div class="seed-btn-row">
@@ -512,10 +365,12 @@
     <section class="step-panel" id="step4" aria-labelledby="step4Title">
       <div class="panel-header">
         <h2 id="step4Title" class="panel-title">Storyboard</h2>
-        <p class="panel-sub">The storyboard agent has broken your video into shots. Review the sequence and reorder or annotate scenes before generating your final video.</p>
+        <p class="panel-sub">The storyboard agent has broken your video into shots. Review the sequence and reorder or
+          annotate scenes before generating your final video.</p>
       </div>
 
-      <p class="storyboard-hint" aria-live="polite">&#9654; Drag scenes to reorder them before generating your video. Each scene is auto-generated by the storyboard agent.</p>
+      <p class="storyboard-hint" aria-live="polite">&#9654; Drag scenes to reorder them before generating your video.
+        Each scene is auto-generated by the storyboard agent.</p>
       <div class="storyboard-grid" id="storyboardGrid" role="list" aria-label="Video storyboard scenes">
         <!-- Injected by storyboard.js -->
       </div>
@@ -536,12 +391,23 @@
       <div class="video-output-layout">
         <div class="video-player-wrap">
           <!-- Segmented progress bar -->
-          <div class="video-seg-bar" id="videoSegBar" role="progressbar" aria-label="Video segments" aria-valuenow="0" aria-valuemin="0" aria-valuemax="5">
-            <div class="video-seg" data-seg="1" title="Segment 1"><div class="video-seg-fill"></div></div>
-            <div class="video-seg" data-seg="2" title="Segment 2"><div class="video-seg-fill"></div></div>
-            <div class="video-seg" data-seg="3" title="Segment 3"><div class="video-seg-fill"></div></div>
-            <div class="video-seg" data-seg="4" title="Segment 4"><div class="video-seg-fill"></div></div>
-            <div class="video-seg" data-seg="5" title="Segment 5"><div class="video-seg-fill"></div></div>
+          <div class="video-seg-bar" id="videoSegBar" role="progressbar" aria-label="Video segments" aria-valuenow="0"
+            aria-valuemin="0" aria-valuemax="5">
+            <div class="video-seg" data-seg="1" title="Segment 1">
+              <div class="video-seg-fill"></div>
+            </div>
+            <div class="video-seg" data-seg="2" title="Segment 2">
+              <div class="video-seg-fill"></div>
+            </div>
+            <div class="video-seg" data-seg="3" title="Segment 3">
+              <div class="video-seg-fill"></div>
+            </div>
+            <div class="video-seg" data-seg="4" title="Segment 4">
+              <div class="video-seg-fill"></div>
+            </div>
+            <div class="video-seg" data-seg="5" title="Segment 5">
+              <div class="video-seg-fill"></div>
+            </div>
           </div>
 
           <div class="video-player-placeholder" id="videoPlayerArea" aria-label="Generated video player">
@@ -549,7 +415,8 @@
               <div class="spinner large" aria-hidden="true"></div>
               <p class="loading-label">Rendering your video…</p>
               <div class="progress-bar-wrap">
-                <div class="progress-bar" id="renderProgress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar" id="renderProgress" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                  aria-valuemax="100"></div>
               </div>
               <p class="progress-label" id="progressLabel">Starting render engine…</p>
             </div>
@@ -583,9 +450,49 @@
             <button class="btn btn-ghost full-width" id="startOver">+ Start New Speech</button>
           </div>
 
+          <!-- ── 3D Bust Viewer ── -->
+          <div class="bust-viewer-card" id="bustViewerCard">
+            <div class="bust-viewer-hd">
+              <span class="bust-viewer-icon" aria-hidden="true">🏛️</span>
+              <div class="bust-viewer-hd-info">
+                <div class="bust-viewer-title">3D Bust — <span id="bustFigureLabel">Figure</span></div>
+                <div class="bust-viewer-sub">Drag to rotate · AI reconstruction</div>
+              </div>
+              <span class="bust-confidence-badge" title="AI approximation — not a verified likeness">speculative</span>
+            </div>
+            <div class="bust-canvas-wrap" id="bustCanvasWrap">
+              <!-- Idle state -->
+              <div class="bust-state bust-idle" id="bustIdle">
+                <span class="bust-state-icon" aria-hidden="true">🎲</span>
+                <p>No 3D bust generated yet.</p>
+                <button class="bust-gen-btn" id="generateBustBtn">✦ Generate 3D Bust</button>
+              </div>
+              <!-- Loading state -->
+              <div class="bust-state bust-loading" id="bustLoading" hidden>
+                <div class="spinner" aria-hidden="true"></div>
+                <p>Generating bust…</p>
+                <div class="bust-progress-wrap" aria-hidden="true">
+                  <div class="bust-progress-fill" id="bustProgress"></div>
+                </div>
+              </div>
+              <!-- Three.js canvas (shown when GLB loaded) -->
+              <canvas id="bustCanvas" class="bust-canvas" hidden
+                aria-label="Interactive 3D bust of historical figure — drag to rotate"></canvas>
+              <!-- Error state -->
+              <div class="bust-state bust-error" id="bustError" hidden>
+                <span class="bust-state-icon" aria-hidden="true">⚠</span>
+                <p id="bustErrorMsg">Could not load 3D bust.</p>
+                <button class="bust-gen-btn" id="retryBustBtn">↺ Retry</button>
+              </div>
+            </div>
+            <p class="bust-disclaimer">3D reconstructions are approximations. Confidence: <strong>speculative</strong>.
+            </p>
+          </div>
+
           <div class="caption-section">
             <h4>Transcript Panel</h4>
-            <div class="caption-scroll" id="captionPanel" role="region" aria-label="Speech transcript" aria-live="polite">
+            <div class="caption-scroll" id="captionPanel" role="region" aria-label="Speech transcript"
+              aria-live="polite">
               <!-- Populated from research form transcript -->
             </div>
           </div>
@@ -660,13 +567,15 @@
         <!-- ── TYPE THE ANSWER (shown/hidden by JS) ── -->
         <div id="taContainer" class="ta-wrap" hidden>
           <label for="taInput" class="sr-only">Your answer</label>
-          <input type="text" id="taInput" class="ta-input" placeholder="Type your answer here…" autocomplete="off" aria-label="Type your answer" />
+          <input type="text" id="taInput" class="ta-input" placeholder="Type your answer here…" autocomplete="off"
+            aria-label="Type your answer" />
           <button class="btn btn-primary ta-submit" id="taSubmit">Submit Answer</button>
         </div>
 
         <!-- ── POLL (shown/hidden by JS) ── -->
         <div id="pollContainer" hidden>
-          <ul class="poll-options" id="pollOptions" role="listbox" aria-label="Poll options" aria-multiselectable="false">
+          <ul class="poll-options" id="pollOptions" role="listbox" aria-label="Poll options"
+            aria-multiselectable="false">
             <!-- Injected by JS -->
           </ul>
           <div class="step-actions" style="margin-top:var(--space-4);padding-top:0;">
@@ -686,7 +595,8 @@
         <!-- Progress & navigation -->
         <div class="activity-actions">
           <span class="text-muted" id="activityProgress" aria-live="polite">Question 1 of 4</span>
-          <button class="btn btn-primary" id="activityNext" style="margin-left:auto" hidden>Next Question <span aria-hidden="true">→</span></button>
+          <button class="btn btn-primary" id="activityNext" style="margin-left:auto" hidden>Next Question <span
+              aria-hidden="true">→</span></button>
         </div>
 
       </div><!-- /activity-layout -->
@@ -804,5 +714,182 @@
   <script src="research.js"></script>
   <script src="storyboard.js"></script>
   <script src="app.js"></script>
+
+  <!-- Three.js importmap for 3D bust viewer -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.min.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    }
+  }
+  </script>
+  <!-- Video modal -->
+  <div class="rv-modal" id="rvModal" role="dialog" aria-modal="true" aria-label="Full video">
+    <div class="rv-modal-inner">
+      <video class="rv-modal-video" id="rvModalVideo" controls playsinline></video>
+      <button class="rv-modal-close" id="rvModalClose" aria-label="Close">&times;</button>
+      <div class="rv-modal-info">
+        <span class="rv-modal-title" id="rvModalTitle"></span>
+        <span class="rv-modal-fig" id="rvModalFig"></span>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="bust.js"></script>
+  <script>
+    (function () {
+      const video = document.getElementById('heroShowcaseVideo');
+      const btn = document.getElementById('videoPlayBtn');
+      if (!video || !btn) return;
+      // Start in playing state
+      btn.classList.add('is-playing');
+      btn.addEventListener('click', function () {
+        if (video.paused) {
+          video.play();
+          btn.classList.add('is-playing');
+          btn.setAttribute('aria-label', 'Pause video');
+        } else {
+          video.pause();
+          btn.classList.remove('is-playing');
+          btn.setAttribute('aria-label', 'Play video');
+        }
+      });
+    })();
+
+    // Video spotlight carousel (step 2 right column)
+    (function () {
+      var items  = Array.from(document.querySelectorAll('.rv-item'));
+      var prevBtn = document.getElementById('rvPrev');
+      var nextBtn = document.getElementById('rvNext');
+      var capTitle = document.getElementById('rvCapTitle');
+      var capFig   = document.getElementById('rvCapFig');
+      if (!items.length) return;
+      var total   = items.length;
+      var current = 0;
+      var timer;
+
+      function updateRv() {
+        items.forEach(function (item, idx) {
+          var vid = item.querySelector('video');
+          item.classList.remove('rv-active', 'rv-prev', 'rv-next');
+          var prev = (current - 1 + total) % total;
+          var next = (current + 1) % total;
+          if (idx === current) {
+            item.classList.add('rv-active');
+            if (vid) { vid.currentTime = 0; vid.play(); }
+          } else if (idx === prev) {
+            item.classList.add('rv-prev');
+            if (vid) vid.pause();
+          } else if (idx === next) {
+            item.classList.add('rv-next');
+            if (vid) vid.pause();
+          } else {
+            if (vid) vid.pause();
+          }
+        });
+        var active = items[current];
+        if (capTitle) capTitle.textContent = active.dataset.title || '';
+        if (capFig)   capFig.textContent   = active.dataset.fig   || '';
+      }
+
+      function advance() { current = (current + 1) % total; updateRv(); }
+      function startTimer() { timer = setInterval(advance, 5000); }
+      function resetTimer() { clearInterval(timer); startTimer(); }
+
+      updateRv();
+      startTimer();
+
+      if (prevBtn) prevBtn.addEventListener('click', function () { current = (current - 1 + total) % total; updateRv(); resetTimer(); });
+      if (nextBtn) nextBtn.addEventListener('click', function () { advance(); resetTimer(); });
+
+      items.forEach(function (item, idx) {
+        item.addEventListener('click', function () {
+          if (!item.classList.contains('rv-active')) {
+            current = idx; updateRv(); resetTimer();
+          } else {
+            // open modal with this video
+            var src = item.querySelector('source') ? item.querySelector('source').src : '';
+            var modal = document.getElementById('rvModal');
+            var modalVid = document.getElementById('rvModalVideo');
+            var modalTitle = document.getElementById('rvModalTitle');
+            var modalFig   = document.getElementById('rvModalFig');
+            if (modal && modalVid) {
+              modalVid.src = src;
+              if (modalTitle) modalTitle.textContent = item.dataset.title || '';
+              if (modalFig)   modalFig.textContent   = item.dataset.fig   || '';
+              modal.classList.add('is-open');
+              modalVid.currentTime = 0;
+              modalVid.play();
+            }
+          }
+        });
+      });
+
+      // close modal
+      var rvModal = document.getElementById('rvModal');
+      var rvClose = document.getElementById('rvModalClose');
+      function closeRvModal() {
+        if (!rvModal) return;
+        var v = document.getElementById('rvModalVideo');
+        if (v) { v.pause(); v.src = ''; }
+        rvModal.classList.remove('is-open');
+      }
+      if (rvClose) rvClose.addEventListener('click', closeRvModal);
+      if (rvModal) rvModal.addEventListener('click', function (e) { if (e.target === rvModal) closeRvModal(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeRvModal(); });
+    })();
+
+    // Gallery spotlight
+    (function () {
+      const items = Array.from(document.querySelectorAll('.gspot-item'));
+      const caption = document.getElementById('galleryCaption');
+      const hint = document.getElementById('galleryClickHint');
+      const prevBtn = document.getElementById('galleryPrev');
+      const nextBtn = document.getElementById('galleryNext');
+      if (!items.length) return;
+      const names = items.map(function (i) { return i.querySelector('img').getAttribute('alt'); });
+      const total = items.length;
+      let current = 0;
+
+      function update() {
+        var prev = (current - 1 + total) % total;
+        var next = (current + 1) % total;
+        items.forEach(function (item, idx) {
+          item.classList.remove('gspot-active', 'gspot-prev', 'gspot-next');
+          if (idx === current) item.classList.add('gspot-active');
+          else if (idx === prev) item.classList.add('gspot-prev');
+          else if (idx === next) item.classList.add('gspot-next');
+        });
+        caption.textContent = names[current];
+      }
+
+      update();
+
+      prevBtn.addEventListener('click', function () { current = (current - 1 + total) % total; update(); });
+      nextBtn.addEventListener('click', function () { current = (current + 1) % total; update(); });
+
+      items.forEach(function (item, idx) {
+        item.addEventListener('click', function () {
+          if (item.classList.contains('gspot-prev') || item.classList.contains('gspot-next')) {
+            // side thumbnail — just bring it into focus
+            current = idx; update();
+          } else if (item.classList.contains('gspot-active')) {
+            // active image clicked — find matching speech and go to research
+            var figureName = item.dataset.figure || names[idx];
+            var db = window.SPEECHES_DB || [];
+            var match = db.find(function(s) {
+              return s.figure.toLowerCase() === figureName.toLowerCase();
+            });
+            if (!match && db.length) match = db[0]; // fallback to first speech
+            if (match && window.__appSelectAndResearch) {
+              window.__appSelectAndResearch(match.id);
+            }
+          }
+        });
+      });
+    })();
+  </script>
 </body>
+
 </html>

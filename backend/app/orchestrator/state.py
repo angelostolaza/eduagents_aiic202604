@@ -50,5 +50,11 @@ class SessionState(TypedDict, total=False):
     seed_approved: bool
     storyboard_approved: bool
 
+    # ── Bust (parallel 3D pipeline) ────────────────────────────────────────────
+    bust_id: str
+    bust_glb_url: str
+    bust_portrait_url: str
+    bust_method: str
+
     # ── Cost tracking ─────────────────────────────────────────────────────────
     total_cost_cents: int

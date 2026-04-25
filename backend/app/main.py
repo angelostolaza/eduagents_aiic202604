@@ -27,16 +27,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     log.info("startup", env=settings.app_env)
 
-    # Initialize DB connection pool
+    # Initialize DB connection pool (non-fatal if DB not available in dev)
     from app.db import engine
-    async with engine.begin() as conn:
-        # verify connectivity
-        await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
+        log.info("db_connected")
+    except Exception as exc:
+        log.warning("db_not_available", error=str(exc))
 
-    # Ensure object storage bucket exists
+    # Ensure object storage bucket exists (non-fatal, 10s timeout)
+    import asyncio
     from app.adapters.storage import StorageAdapter
     try:
-        await StorageAdapter().ensure_bucket()
+        await asyncio.wait_for(StorageAdapter().ensure_bucket(), timeout=10)
     except Exception as exc:
         log.warning("storage_init_failed", error=str(exc))
 
@@ -135,7 +139,7 @@ def create_app() -> FastAPI:
         )
 
     # ── Routers ───────────────────────────────────────────────────────────────
-    from app.api import auth, sessions, research, script, seed, storyboard, media, artifacts, events, speeches, admin
+    from app.api import auth, sessions, research, script, seed, storyboard, media, artifacts, events, speeches, admin, bust
 
     prefix = "/api/v1"
     app.include_router(auth.router, prefix=prefix)
@@ -144,6 +148,7 @@ def create_app() -> FastAPI:
     app.include_router(script.router, prefix=prefix)
     app.include_router(seed.router, prefix=prefix)
     app.include_router(storyboard.router, prefix=prefix)
+    app.include_router(bust.router, prefix=prefix)
     app.include_router(media.router, prefix=prefix)
     app.include_router(artifacts.router, prefix=prefix)
     app.include_router(events.router, prefix=prefix)

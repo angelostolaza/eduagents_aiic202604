@@ -13,6 +13,7 @@ from __future__ import annotations
 from langgraph.graph import END, StateGraph
 
 from app.orchestrator.nodes import (
+    node_bust,
     node_research,
     node_scripting,
     node_seed_image,
@@ -37,6 +38,8 @@ def build_graph() -> StateGraph:
     g.add_node("storyboard",  node_storyboard)
     g.add_node("voice",       node_voice)
     g.add_node("video",       node_video)
+    # Bust runs as a standalone parallel node; entry triggered via the API.
+    g.add_node("bust",        node_bust)
 
     # ── Entry ─────────────────────────────────────────────────────────────────
     g.set_entry_point("research")

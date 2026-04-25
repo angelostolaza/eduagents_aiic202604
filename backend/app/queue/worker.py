@@ -10,7 +10,7 @@ import logging
 import os
 
 import redis
-from rq import Worker, Queue, Connection
+from rq import Worker, Queue
 
 from app.config import get_settings
 
@@ -21,11 +21,10 @@ log = logging.getLogger(__name__)
 def main() -> None:
     settings = get_settings()
     conn = redis.Redis.from_url(settings.redis_url)
-    queues = ["pipeline"]
-    log.info(f"Starting RQ worker on queues: {queues}")
-    with Connection(conn):
-        worker = Worker(list(map(Queue, queues)))
-        worker.work(with_scheduler=True)
+    queues = [Queue("pipeline", connection=conn)]
+    log.info(f"Starting RQ worker on queues: {[q.name for q in queues]}")
+    worker = Worker(queues, connection=conn)
+    worker.work(with_scheduler=True)
 
 
 if __name__ == "__main__":

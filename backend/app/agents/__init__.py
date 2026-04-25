@@ -5,6 +5,7 @@ from app.agents.seed_image import SeedImageAgent
 from app.agents.storyboard import StoryboardAgent
 from app.agents.voice import VoiceAgent
 from app.agents.video import VideoAgent
+from app.agents.bust import BustAgent
 
 __all__ = [
     "BaseAgent",
@@ -14,4 +15,5 @@ __all__ = [
     "StoryboardAgent",
     "VoiceAgent",
     "VideoAgent",
+    "BustAgent",
 ]

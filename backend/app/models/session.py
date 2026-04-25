@@ -71,3 +71,6 @@ class ProjectSession(Base, TimestampMixin):
     agent_runs: Mapped[list[Any]] = relationship(
         "AgentRun", back_populates="session", lazy="noload"
     )
+    bust_assets: Mapped[list[Any]] = relationship(
+        "BustAsset", back_populates="session", lazy="noload"
+    )
