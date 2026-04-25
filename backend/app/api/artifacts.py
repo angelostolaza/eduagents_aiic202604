@@ -91,9 +91,9 @@ async def get_script_report(
 @router.get("/receipt")
 async def get_receipt(
     session_id: str,
-    format: str = "md",
     current_user: CurrentUser,
     db: DB,
+    format: str = "md",
 ) -> Response:
     session = await _get_owned_session(session_id, current_user.id, db)
     runs_result = await db.execute(select(AgentRun).where(AgentRun.session_id == session_id))
