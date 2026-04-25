@@ -826,29 +826,28 @@
      STEP 6 — INTERACTIVE ACTIVITY
   ───────────────────────────────────────── */
 
-  // Activity questions keyed by speech id (falls back to generic)
+  // Activity questions — all multiple choice
   const ACTIVITIES = {
     "gettysburg-1863": [
       { question: "Which war was the backdrop for the Gettysburg Address?", correct: "A",
         options: ["American Civil War", "War of 1812", "Mexican–American War", "World War I"] },
-      { question: "Where was the Gettysburg Address actually delivered?", correct: "B",
-        options: ["On the battlefield at Gettysburg", "At the Soldiers' National Cemetery dedication", "In the U.S. Capitol", "At the White House"],
-        explanation: "It was delivered at the dedication of the Soldiers' National Cemetery, four and a half months after the battle." },
+      { question: "Where was the Gettysburg Address delivered?", correct: "B",
+        options: ["On the Gettysburg battlefield", "At the Soldiers' National Cemetery dedication", "In the U.S. Capitol", "At the White House"],
+        explanation: "Lincoln spoke at the dedication of the Soldiers' National Cemetery, four and a half months after the battle." },
       { question: "Complete the opening: 'Four score and _____ years ago…'", correct: "C",
-        options: ["Twenty", "Forty", "Seven", "Eleven"],
+        options: ["Twenty", "Forty", "Seven", "Ten"],
         explanation: "Four score and seven = 87 years, counting back from 1863 to 1776." },
-      { question: "What does Lincoln call for in the closing line of the Address?", correct: "A",
-        options: ["Government of the people, by the people, for the people", "Victory at all costs", "Punishment of the Confederacy", "A new constitutional convention"] }
+      { question: "What closing phrase from the Address became a global definition of democracy?", correct: "D",
+        options: ["'A new birth of freedom'", "'These dead shall not have died in vain'", "'All men are created equal'", "'Government of the people, by the people, for the people'"] }
     ],
     "ihaveadream-1963": [
       { question: "Where was the 'I Have a Dream' speech delivered?", correct: "B",
         options: ["Capitol Building", "Lincoln Memorial", "White House lawn", "National Mall stage"] },
-      { question: "Which singer's encouragement inspired Dr. King to improvise the 'I Have a Dream' passage?", correct: "C",
-        options: ["Aretha Franklin", "Nina Simone", "Mahalia Jackson", "Ella Fitzgerald"],
-        explanation: "Mahalia Jackson called out 'Tell them about the dream!' prompting Dr. King to set aside his prepared text." },
+      { question: "Who called out to Dr. King, prompting him to improvise the 'I Have a Dream' passage?", correct: "C",
+        options: ["Aretha Franklin", "Rosa Parks", "Mahalia Jackson", "Coretta Scott King"],
+        explanation: "Mahalia Jackson shouted 'Tell them about the dream!' and Dr. King set aside his prepared text." },
       { question: "What was the official name of the march this speech headlined?", correct: "A",
-        options: ["March on Washington for Jobs and Freedom", "Selma to Montgomery March", "Chicago Freedom Movement March", "Poor People's Campaign March"],
-        explanation: "The March on Washington for Jobs and Freedom took place on August 28, 1963." },
+        options: ["March on Washington for Jobs and Freedom", "Selma to Montgomery March", "Chicago Freedom Movement March", "Poor People's Campaign March"] },
       { question: "In what year was the 'I Have a Dream' speech delivered?", correct: "B",
         options: ["1955", "1963", "1968", "1960"] }
     ]
@@ -867,25 +866,25 @@
   ];
 
   const actState = {
-    questions:   [],
-    current:     0,
-    answered:    false,
-    score:       0,
-    streak:      0,
-    bestStreak:  0,
-    times:       [],
-    qStart:      0
+    questions:  [],
+    current:    0,
+    answered:   false,
+    score:      0,
+    streak:     0,
+    bestStreak: 0,
+    times:      [],
+    qStart:     0
   };
 
   function startActivity() {
     const id = state.selectedSpeech?.id;
-    actState.questions   = (ACTIVITIES[id] || GENERIC_ACTIVITIES).slice();
-    actState.current     = 0;
-    actState.answered    = false;
-    actState.score       = 0;
-    actState.streak      = 0;
-    actState.bestStreak  = 0;
-    actState.times       = [];
+    actState.questions  = (ACTIVITIES[id] || GENERIC_ACTIVITIES).slice();
+    actState.current    = 0;
+    actState.answered   = false;
+    actState.score      = 0;
+    actState.streak     = 0;
+    actState.bestStreak = 0;
+    actState.times      = [];
     showActivityQuestion();
   }
 
@@ -896,8 +895,7 @@
     actState.qStart   = Date.now();
 
     // Reset feedback
-    const fb = document.getElementById("activityFeedback");
-    fb.className = "activity-feedback";
+    document.getElementById("activityFeedback").className = "activity-feedback";
 
     // Update progress
     document.getElementById("activityProgress").textContent =
@@ -909,11 +907,7 @@
     // Set question text
     document.getElementById("activityQuestion").textContent = q.question;
 
-    // Populate and show MC answers
-    showMC(q);
-  }
-
-  function showMC(q) {
+    // Populate answer buttons
     const container = document.getElementById("mcContainer");
     const letters = ["A","B","C","D"];
     letters.forEach((l, i) => {
@@ -923,11 +917,11 @@
       btn.classList.remove("selected","correct","incorrect");
       btn.setAttribute("aria-pressed","false");
       btn.disabled = false;
-      btn.onclick = () => answerMC(l, q.correct, q.explanation);
+      btn.onclick = () => answerQuestion(l, q.correct, q.explanation);
     });
   }
 
-  function answerMC(chosen, correct, explanation) {
+  function answerQuestion(chosen, correct, explanation) {
     if (actState.answered) return;
     actState.answered = true;
     const elapsed = ((Date.now() - actState.qStart) / 1000).toFixed(1);
