@@ -49,11 +49,14 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str = ""
     higgsfield_api_key: str = ""
 
+    # ── Ollama (local open-source LLMs) ─────────────────────────────────────
+    ollama_base_url: str = "http://localhost:11434"
+
     # ── Model defaults ────────────────────────────────────────────────────────
-    default_research_model: str = "claude-opus-4-7"
-    default_scripting_model: str = "claude-opus-4-7"
-    default_seed_image_model: str = "gemini-3.0-flash-preview-image-generation"
-    default_video_model: str = "veo-3.1-standard"
+    default_research_model: str = "llama3.2"
+    default_scripting_model: str = "llama3.2"
+    default_seed_image_model: str = "elevenlabs-image"
+    default_video_model: str = "elevenlabs-video"
     default_voice_model: str = "eleven_v3"
 
     # ── Rate limits ───────────────────────────────────────────────────────────

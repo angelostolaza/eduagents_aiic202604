@@ -1,4 +1,4 @@
-"""Video Agent — generates final video via Google Veo / Higgsfield fallback."""
+"""Video Agent — generates final video via ElevenLabs (placeholder) adapter."""
 from __future__ import annotations
 
 from typing import Any
@@ -10,10 +10,10 @@ from app.agents.base import BaseAgent
 
 class VideoAgent(BaseAgent):
     agent_name = "video"
-    default_model = "veo-3-fast"
+    default_model = "elevenlabs-video"
 
     async def _execute(self, state: dict[str, Any], db: AsyncSession) -> dict[str, Any]:
-        from app.adapters.higgsfield import HiggsFieldAdapter
+        from app.adapters.elevenlabs import ElevenLabsAdapter
         from app.adapters.storage import StorageAdapter
         from app.ids import make_id
         from app.models.video import VideoRender
@@ -22,7 +22,7 @@ class VideoAgent(BaseAgent):
         storyboard_shots: list[dict] = state.get("storyboard_shots", [])
         voice_url: str = state.get("voice_track_url", "")
 
-        adapter = HiggsFieldAdapter()
+        adapter = ElevenLabsAdapter()
         storage = StorageAdapter()
 
         clips: list[dict] = []

@@ -24,10 +24,10 @@ Respond with ONLY the JSON object."""
 
 class ScriptingAgent(BaseAgent):
     agent_name = "scripting"
-    default_model = "claude-3-5-sonnet-20241022"
+    default_model = "llama3.2"
 
     async def _execute(self, state: dict[str, Any], db: AsyncSession) -> dict[str, Any]:
-        from app.adapters.anthropic import AnthropicAdapter
+        from app.adapters.ollama import OllamaAdapter
         from app.ids import make_id
         from app.models.script import ScriptPackage
         from app.speeches.catalog import get_speech_by_id
@@ -46,7 +46,7 @@ UX choices: {json.dumps(ux_choices, indent=2)}
         if revision_notes:
             user_prompt += f"\nRevision notes:\n{json.dumps(revision_notes, indent=2)}"
 
-        adapter = AnthropicAdapter()
+        adapter = OllamaAdapter()
         response = await adapter.complete(
             system=SCRIPT_SYSTEM_PROMPT,
             user=user_prompt,

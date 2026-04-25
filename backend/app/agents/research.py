@@ -31,10 +31,10 @@ Respond with ONLY the JSON object. No preamble. No markdown fences."""
 
 class ResearchAgent(BaseAgent):
     agent_name = "research"
-    default_model = "claude-3-5-sonnet-20241022"
+    default_model = "llama3.2"
 
     async def _execute(self, state: dict[str, Any], db: AsyncSession) -> dict[str, Any]:
-        from app.adapters.anthropic import AnthropicAdapter
+        from app.adapters.ollama import OllamaAdapter
         from app.ids import make_id
         from app.models.research import ResearchForm
         from app.speeches.catalog import get_speech_by_id
@@ -58,7 +58,7 @@ Description: {speech['description']}
         if revision_notes:
             user_prompt += f"\n\nRevision notes from editor:\n{json.dumps(revision_notes, indent=2)}"
 
-        adapter = AnthropicAdapter()
+        adapter = OllamaAdapter()
         response = await adapter.complete(
             system=RESEARCH_SYSTEM_PROMPT,
             user=user_prompt,

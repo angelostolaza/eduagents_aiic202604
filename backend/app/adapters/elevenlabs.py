@@ -1,4 +1,4 @@
-"""ElevenLabs adapter — text-to-speech v3."""
+"""ElevenLabs adapter — text-to-speech v3, plus image/video stubs."""
 from __future__ import annotations
 
 from typing import Any
@@ -9,6 +9,8 @@ from app.config import get_settings
 
 
 _COST_PER_1K_CHARS = 0.3  # $0.003 / char → 0.3 cents / char at 1K chars
+_COST_PER_IMAGE_CENTS = 5   # placeholder cost estimate
+_COST_PER_SECOND_CENTS = 10  # placeholder cost estimate for video
 
 
 class ElevenLabsAdapter:
@@ -55,3 +57,45 @@ class ElevenLabsAdapter:
 
         cost_cents = int((len(text) / 1000) * _COST_PER_1K_CHARS * 100)
         return audio_bytes, max(cost_cents, 1), method
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=30))
+    async def generate_image(
+        self,
+        *,
+        prompt: str,
+        aspect_ratio: str = "16:9",
+    ) -> tuple[bytes, int]:
+        """Return (image_bytes, cost_cents).
+
+        ElevenLabs does not currently offer an image-generation API.
+        This method returns a 1x1 transparent PNG placeholder so the pipeline
+        continues to function.  Swap in a real implementation when ElevenLabs
+        (or a connected partner service) exposes an image endpoint under the
+        same API key.
+        """
+        # Minimal valid 1×1 transparent PNG (68 bytes)
+        placeholder_png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+            b"\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89"
+            b"\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01"
+            b"\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
+        return placeholder_png, _COST_PER_IMAGE_CENTS
+
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=5, max=60))
+    async def generate_clip(
+        self,
+        *,
+        image_url: str,
+        prompt: str,
+        duration_s: int = 4,
+    ) -> tuple[bytes, int]:
+        """Return (video_bytes, cost_cents).
+
+        ElevenLabs does not currently offer a video-generation API.
+        This method returns empty bytes as a placeholder so the pipeline
+        continues to function.  Swap in a real implementation when ElevenLabs
+        (or a connected partner service) exposes a video endpoint under the
+        same API key.
+        """
+        return b"", _COST_PER_SECOND_CENTS * duration_s

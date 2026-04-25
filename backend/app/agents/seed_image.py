@@ -10,10 +10,10 @@ from app.agents.base import BaseAgent
 
 class SeedImageAgent(BaseAgent):
     agent_name = "seed_image"
-    default_model = "gemini-2.0-flash-exp"
+    default_model = "elevenlabs-image"
 
     async def _execute(self, state: dict[str, Any], db: AsyncSession) -> dict[str, Any]:
-        from app.adapters.google import GoogleAdapter
+        from app.adapters.elevenlabs import ElevenLabsAdapter
         from app.adapters.storage import StorageAdapter
         from app.ids import make_id
         from app.models.seed import SeedImage
@@ -39,7 +39,7 @@ class SeedImageAgent(BaseAgent):
 
         prompt = " ".join(prompt_parts)
 
-        adapter = GoogleAdapter()
+        adapter = ElevenLabsAdapter()
         image_bytes, cost_cents = await adapter.generate_image(prompt=prompt, aspect_ratio="16:9")
 
         # Determine next version number
