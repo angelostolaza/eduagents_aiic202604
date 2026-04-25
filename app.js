@@ -784,6 +784,23 @@
     document.addEventListener("keydown", e => {
       if (e.key === "Escape" && !overlay.hidden) overlay.hidden = true;
     });
+
+    // ── Video spotlight modal (rv-modal) ──
+    const rvModal    = document.getElementById("rvModal");
+    const rvCloseBtn = document.getElementById("rvModalClose");
+    const rvModalVid = document.getElementById("rvModalVideo");
+
+    function closeRvModal() {
+      if (!rvModal) return;
+      rvModal.classList.remove("is-open");
+      if (rvModalVid) { rvModalVid.pause(); rvModalVid.src = ""; }
+    }
+
+    if (rvCloseBtn) rvCloseBtn.addEventListener("click", closeRvModal);
+    if (rvModal)    rvModal.addEventListener("click", e => { if (e.target === rvModal) closeRvModal(); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && rvModal && rvModal.classList.contains("is-open")) closeRvModal();
+    });
   }
 
   /* ─────────────────────────────────────────
