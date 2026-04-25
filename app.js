@@ -213,8 +213,9 @@
     document.getElementById("step2Next").addEventListener("click", () => {
       const prompt = document.getElementById("videoPrompt");
       state.videoPrompt = prompt ? prompt.value.trim() : "";
+      collectResearchData();
       goToStep(5);
-      generateSeedImage(); // reuse existing video-generation pipeline
+      startVideoRender();
     });
 
     // Quick-start chips fill the textarea
@@ -440,6 +441,22 @@
   ];
 
   function startVideoRender() {
+    // Reset player state for clean re-entry
+    const finalVideo = document.getElementById("finalVideo");
+    if (finalVideo) {
+      finalVideo.pause();
+      finalVideo.removeAttribute("src");
+      finalVideo.classList.add("hidden");
+    }
+    const loadingEl = document.getElementById("videoLoading");
+    if (loadingEl) {
+      loadingEl.classList.remove("hidden");
+      const barReset = document.getElementById("renderProgress");
+      if (barReset) { barReset.style.width = "0"; barReset.setAttribute("aria-valuenow", 0); }
+      const labelReset = document.getElementById("progressLabel");
+      if (labelReset) labelReset.textContent = "Starting render engine…";
+    }
+
     populateVideoDetails();
     populateCaptionPanel();
 
